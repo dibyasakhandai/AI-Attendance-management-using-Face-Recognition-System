@@ -1,0 +1,25 @@
+{
+  "name": "college-portal",
+  "version": "3.0.0",
+  "description": "Trident Academy of Technology — College Portal (MySQL backend) with AI Attendance",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "jest --verbose",
+    "setup-ai": "node -e \"const mysql=require('mysql2/promise');const fs=require('fs');(async()=>{const sql=fs.readFileSync('ai_attendance_migration.sql','utf8');const pool=await mysql.createPool({host:'localhost',user:'root',password:process.env.DB_PASS||'',database:'college_portal',multipleStatements:true});await pool.query(sql);console.log('Migration done!');process.exit(0);})().catch(e=>{console.error(e.message);process.exit(1);})\""
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^4.22.1",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.9.7"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/test/**/*.test.js"]
+  }
+}
+

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TAT — Student Dashboard</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;background:#eef1f7;min-height:100vh}
+    .header{background:linear-gradient(90deg,#002366 0%,#0047ab 100%);color:#fff;padding:10px 20px;display:flex;align-items:center;gap:14px}
+    .header-logo{width:60px;height:60px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;font-weight:bold;color:#002366}
+    .header-text h1{font-size:20px;font-weight:bold}
+    .header-text h2{font-size:12px;font-weight:normal;opacity:.85;margin-top:2px}
+    .navbar{background:#1a1f36;display:flex;align-items:stretch;flex-wrap:wrap}
+    .navbar a{color:#b0b8d4;text-decoration:none;padding:11px 18px;font-size:12.5px;font-weight:bold;text-transform:uppercase;letter-spacing:.4px;border-right:1px solid #2a3150;display:flex;align-items:center;gap:5px}
+    .navbar a:hover,.navbar a.active{background:#002366;color:#fff}
+    .nav-right{margin-left:auto;display:flex;align-items:stretch}
+    .nav-welcome{color:#7eb3ff;padding:11px 16px;font-size:12px;display:flex;align-items:center;border-right:1px solid #2a3150}
+    .nav-logout{color:#ff6b6b;padding:11px 16px;font-size:12px;font-weight:bold;cursor:pointer;text-transform:uppercase;display:flex;align-items:center}
+    .nav-logout:hover{background:#3d0000;color:#ff9999}
+    .page{max-width:1200px;margin:20px auto;padding:0 15px;display:grid;grid-template-columns:220px 1fr;gap:16px}
+    .profile-card{background:#fff;border:1px solid #d0d8ef;border-radius:6px;overflow:hidden;position:sticky;top:16px}
+    .profile-photo-wrap{background:#002366;padding:18px;text-align:center}
+    .profile-photo-placeholder{width:90px;height:90px;border-radius:50%;border:3px solid #7eb3ff;background:#cdd8f5;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:36px;color:#002366}
+    .profile-name{color:#fff;font-size:15px;font-weight:bold;margin-top:10px}
+    .profile-role{color:#7eb3ff;font-size:12px;margin-top:3px}
+    .profile-menu{list-style:none}
+    .profile-menu li a{display:flex;align-items:center;gap:8px;padding:10px 16px;color:#2c3e70;font-size:13px;text-decoration:none;border-bottom:1px solid #eef1f7}
+    .profile-menu li a:hover{background:#eef1f7;color:#002366;font-weight:bold}
+    .right-content{display:flex;flex-direction:column;gap:16px}
+    .info-card{background:#fff;border:1px solid #d0d8ef;border-radius:6px;overflow:hidden}
+    .card-title{background:#002366;color:#fff;padding:9px 16px;font-size:13.5px;font-weight:bold;display:flex;align-items:center;gap:8px}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+    .info-label{padding:9px 14px;font-size:12.5px;font-weight:bold;color:#002366;background:#f4f7ff;border-bottom:1px solid #e8ecf7;border-right:1px solid #e8ecf7}
+    .info-value{padding:9px 14px;font-size:12.5px;color:#1a1a1a;border-bottom:1px solid #e8ecf7}
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .stat-card{background:#fff;border:1px solid #d0d8ef;border-radius:6px;padding:16px;text-align:center}
+    .stat-val{font-size:28px;font-weight:bold;color:#002366}
+    .stat-lbl{font-size:11px;color:#666;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+    .stat-card.green .stat-val{color:#16a34a}
+    .stat-card.orange .stat-val{color:#d97706}
+    .stat-card.red .stat-val{color:#dc2626}
+
+    /* Subjects + Faculty table */
+    .subj-table{width:100%;border-collapse:collapse;font-size:13px}
+    .subj-table th{background:#002366;color:#fff;padding:9px 12px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+    .subj-table td{padding:9px 12px;border-bottom:1px solid #eef1f7;vertical-align:middle}
+    .subj-table tr:hover td{background:#f4f7ff}
+    .badge-att{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold}
+    .badge-green{background:#dcfce7;color:#166534}
+    .badge-orange{background:#fef9c3;color:#854d0e}
+    .badge-red{background:#fee2e2;color:#991b1b}
+    .badge-grey{background:#f1f5f9;color:#64748b}
+    .faculty-chip{display:inline-flex;align-items:center;gap:5px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;padding:3px 8px;font-size:12px;color:#1d4ed8}
+
+    /* Timetable */
+    .tt-day{font-weight:bold;color:#002366;padding:10px 14px 4px;font-size:13px;border-top:2px solid #e8ecf7;background:#f8faff}
+    .tt-slots{display:flex;flex-wrap:wrap;gap:8px;padding:8px 14px 10px}
+    .tt-slot{background:#fff;border:1px solid #d0d8ef;border-radius:6px;padding:8px 12px;font-size:12px;min-width:130px;flex:0 0 auto}
+    .tt-slot .time{color:#666;font-size:11px;margin-bottom:3px}
+    .tt-slot .subj{font-weight:bold;color:#002366;font-size:13px}
+    .tt-slot .fac{color:#555;font-size:11px;margin-top:2px}
+    .tt-slot.break-slot{background:#fafafa;border-color:#e5e7eb}
+    .tt-slot.break-slot .subj{color:#9ca3af}
+    .tt-slot.lab-slot{background:#eff6ff;border-color:#93c5fd}
+    .loading{padding:20px;text-align:center;color:#888;font-size:13px}
+    footer{text-align:center;padding:14px;background:#1a1f36;color:#6b7294;font-size:12px;margin-top:20px}
+
+    /* Attendance bar */
+    .att-bar-wrap{background:#e5e7eb;border-radius:4px;height:6px;margin-top:4px;overflow:hidden}
+    .att-bar{height:6px;border-radius:4px;transition:width .5s}
+    .att-bar.green{background:#16a34a}
+    .att-bar.orange{background:#d97706}
+    .att-bar.red{background:#dc2626}
+    .btn-refresh-sm{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-weight:600;transition:.15s;margin-left:auto}
+    .btn-refresh-sm:hover{background:rgba(255,255,255,.3)}
+    .btn-refresh-sm:disabled{opacity:.5;cursor:not-allowed}
+    .last-upd{font-size:10px;color:rgba(255,255,255,.6);margin-left:6px;font-weight:normal}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">TAT</div>
+  <div class="header-text">
+    <h1>Trident Academy of Technology</h1>
+    <h2>E-GOVERNANCE PORTAL — STUDENT DASHBOARD</h2>
+  </div>
+</div>
+
+<nav class="navbar">
+  <a href="dashboard.html" class="active">🏠 Home</a>
+  <a href="attendance.html">📋 Attendance</a>
+  <a href="changepassword.html">🔑 Change Password</a>
+  <div class="nav-right">
+    <span class="nav-welcome" id="nav-name">Welcome, Student</span>
+    <span class="nav-logout" onclick="logout()">⏻ Logout</span>
+  </div>
+</nav>
+
+<div class="page">
+  <!-- Left profile -->
+  <div>
+    <div class="profile-card">
+      <div class="profile-photo-wrap">
+        <div class="profile-photo-placeholder">👤</div>
+        <div class="profile-name" id="profile-name">Student Name</div>
+        <div class="profile-role">STUDENT</div>
+      </div>
+      <ul class="profile-menu">
+        <li><a href="dashboard.html">🏠 Home</a></li>
+        <li><a href="attendance.html">📋 Attendance</a></li>
+        <li><a href="changepassword.html">🔑 Change Password</a></li>
+        <li><a href="#" onclick="logout()">⏻ Logout</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Right content -->
+  <div class="right-content">
+
+    <!-- Student Info -->
+    <div class="info-card">
+      <div class="card-title">👤 Student Information</div>
+      <div class="info-grid">
+        <div class="info-label">Registration No.</div><div class="info-value" id="si-regno">—</div>
+        <div class="info-label">Full Name</div><div class="info-value" id="si-name">—</div>
+        <div class="info-label">Branch / Discipline</div><div class="info-value" id="si-branch">—</div>
+        <div class="info-label">Current Semester</div><div class="info-value" id="si-sem">—</div>
+        <div class="info-label">Section</div><div class="info-value" id="si-section">—</div>
+        <div class="info-label">Department</div><div class="info-value" id="si-dept">—</div>
+        <div class="info-label">Session</div><div class="info-value" id="si-session">—</div>
+        <div class="info-label">Email</div><div class="info-value" id="si-email">—</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-val" id="stat-sem">—</div>
+        <div class="stat-lbl">Semester</div>
+      </div>
+      <div class="stat-card" id="stat-att-card">
+        <div class="stat-val" id="stat-att">—</div>
+        <div class="stat-lbl">Overall Attendance</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-subs">—</div>
+        <div class="stat-lbl">Subjects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-photos">—</div>
+        <div class="stat-lbl">Face Photos</div>
+      </div>
+    </div>
+
+    <!-- Subjects + Faculty + Attendance -->
+    <div class="info-card">
+      <div class="card-title">
+        📚 My Subjects — Faculty &amp; Attendance
+        <span class="last-upd" id="subj-last-upd"></span>
+        <button class="btn-refresh-sm" id="btn-refresh-subj" onclick="refreshSubjects()">🔄 Refresh</button>
+      </div>
+      <div id="subjects-table-wrap" class="loading">Loading subjects...</div>
+    </div>
+
+    <!-- Timetable -->
+    <div class="info-card">
+      <div class="card-title">📅 My Timetable (Current Semester)</div>
+      <div id="timetable-wrap" class="loading">Loading timetable...</div>
+    </div>
+
+  </div>
+</div>
+
+<footer>Copyright © 2024–2025 Trident Academy of Technology, Bhubaneswar. All Rights Reserved.</footer>
+
+<script>
+const API = '';
+const raw = localStorage.getItem('user');
+if (!raw) { location.href = 'index.html'; }
+
+const user   = JSON.parse(raw);
+const data   = user.data || {};
+const sid    = data.student_id || data.studentId || '';
+const branch = (data.branch || 'CSE').toUpperCase();
+const sem    = parseInt(data.semester) || 1;
+const section= data.section || '';
+
+// Fill info
+document.getElementById('nav-name').textContent     = 'Welcome, ' + (user.name || 'Student');
+document.getElementById('profile-name').textContent  = user.name || 'Student';
+document.getElementById('si-regno').textContent      = sid;
+document.getElementById('si-name').textContent       = data.full_name || user.name || '—';
+document.getElementById('si-branch').textContent     = (data.branch||'—') + ' / ' + (data.discipline||'B.TECH.');
+document.getElementById('si-sem').textContent        = sem ? 'Semester ' + sem : '—';
+document.getElementById('si-dept').textContent       = data.department || '—';
+document.getElementById('si-session').textContent    = data.session || '2025-2026';
+document.getElementById('si-email').textContent      = data.email || '—';
+document.getElementById('si-section').textContent    = section || '—';
+document.getElementById('stat-sem').textContent      = sem || '—';
+document.getElementById('stat-photos').textContent   = data.photo_count ?? '—';
+
+// Refresh subjects + overall attendance together
+function refreshSubjects(){
+  const btn = document.getElementById('btn-refresh-subj');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Loading…'; }
+  loadOverallAttendance();
+  loadSubjects();
+}
+
+// Load overall attendance
+async function loadOverallAttendance(){
+  try{
+    const r = await fetch(`/api/attendance/${sid}`);
+    const rows = await r.json();
+    let held=0, attended=0;
+    rows.forEach(r=>{ held+=Number(r.total_held||0); attended+=Number(r.total_attended||0); });
+    const pct = held>0 ? Math.round(attended/held*100) : null;
+    const el = document.getElementById('stat-att');
+    const card = document.getElementById('stat-att-card');
+    if(pct!==null){
+      el.textContent=pct+'%';
+      card.classList.remove('green','orange','red');
+      card.classList.add(pct>=75?'green':pct>=65?'orange':'red');
+    } else { el.textContent='N/A'; }
+  }catch(e){ document.getElementById('stat-att').textContent='N/A'; }
+}
+
+// Load subjects with faculty and attendance
+async function loadSubjects(){
+  const wrap = document.getElementById('subjects-table-wrap');
+  const btn = document.getElementById('btn-refresh-subj');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Loading…'; }
+  try{
+    // Load subjects+faculty
+    const r1 = await fetch(`/api/student/subjects-faculty?semester=${sem}&branch=${encodeURIComponent(branch)}&section=${encodeURIComponent(section)}`);
+    const d1 = await r1.json();
+    const subjects = d1.success ? d1.subjects : [];
+
+    // Load attendance for this student
+    const r2 = await fetch(`/api/attendance/${sid}/${sem}`);
+    const attRows = await r2.json().catch(()=>[]);
+    const attMap = {};
+    (Array.isArray(attRows)?attRows:[]).forEach(a=>{ attMap[a.subject_code]={held:Number(a.classes_held||a.total_held||0), attended:Number(a.classes_attended||a.total_attended||0)}; });
+
+    document.getElementById('stat-subs').textContent = subjects.length || '—';
+
+    if(!subjects.length){
+      wrap.innerHTML='<div class="loading">No subjects found for Semester '+sem+' '+branch+'</div>';
+      if(btn){ btn.disabled=false; btn.textContent='🔄 Refresh'; }
+      return;
+    }
+
+    let html = `<table class="subj-table">
+      <thead><tr>
+        <th>#</th><th>Subject</th><th>Code</th>
+        <th>Faculty</th><th>Classes Held</th><th>Attended</th><th>Attendance %</th>
+      </tr></thead><tbody>`;
+
+    subjects.forEach((s,i)=>{
+      const att = attMap[s.subject_code]||{held:0,attended:0};
+      const pct = att.held>0 ? Math.round(att.attended/att.held*100) : null;
+      const badgeClass = pct===null?'badge-grey':pct>=75?'badge-green':pct>=65?'badge-orange':'badge-red';
+      const pctText = pct===null?'No data':pct+'%';
+      const barClass = pct===null?'':pct>=75?'green':pct>=65?'orange':'red';
+      const barWidth = pct===null?0:pct;
+      const facHtml = s.faculty_name
+        ? `<span class="faculty-chip">👨‍🏫 ${s.faculty_name}</span>`
+        : '<span style="color:#aaa;font-size:12px">Not assigned</span>';
+      html += `<tr>
+        <td style="color:#888">${i+1}</td>
+        <td><b>${s.subject_name}</b>${s.credits?`<span style="color:#888;font-size:11px;margin-left:6px">${s.credits} credits</span>`:''}</td>
+        <td style="font-family:monospace;font-size:12px;color:#555">${s.subject_code}</td>
+        <td>${facHtml}</td>
+        <td style="text-align:center">${att.held||0}</td>
+        <td style="text-align:center">${att.attended||0}</td>
+        <td>
+          <span class="badge-att ${badgeClass}">${pctText}</span>
+          ${pct!==null?`<div class="att-bar-wrap"><div class="att-bar ${barClass}" style="width:${barWidth}%"></div></div>`:''}
+        </td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+
+    // Stamp timestamp and re-enable refresh
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+    const updEl = document.getElementById('subj-last-upd');
+    if(updEl) updEl.textContent = 'Updated '+timeStr;
+    const btn = document.getElementById('btn-refresh-subj');
+    if(btn){ btn.disabled=false; btn.textContent='🔄 Refresh'; }
+
+  }catch(e){
+    wrap.innerHTML='<div class="loading" style="color:red">Error loading subjects: '+e.message+'</div>';
+    const btn = document.getElementById('btn-refresh-subj');
+    if(btn){ btn.disabled=false; btn.textContent='🔄 Retry'; }
+  }
+}
+
+// Load timetable
+async function loadTimetable(){
+  const wrap = document.getElementById('timetable-wrap');
+  try{
+    const r = await fetch(`/api/student/timetable?semester=${sem}&branch=${encodeURIComponent(branch)}&section=${encodeURIComponent(section)}`);
+    const d = await r.json();
+    if(!d.success||!d.slots||!d.slots.length){
+      wrap.innerHTML='<div class="loading">No timetable found. Admin needs to upload timetable for Semester '+sem+' '+branch+'</div>';
+      return;
+    }
+    const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const byDay = {};
+    days.forEach(day=>byDay[day]=[]);
+    d.slots.forEach(s=>{ if(byDay[s.day_of_week]) byDay[s.day_of_week].push(s); });
+
+    let html = `<div style="padding:8px 14px;font-size:12px;color:#666;background:#fffbeb;border-bottom:1px solid #fde68a">📌 Batch: <b>${d.batch}</b></div>`;
+    days.forEach(day=>{
+      const slots = byDay[day];
+      if(!slots.length) return;
+      html += `<div class="tt-day">📅 ${day}</div><div class="tt-slots">`;
+      slots.forEach(s=>{
+        const isBreak = ['BREAK','LUNCH','LIBRARY','RECESS'].includes((s.subject_short||'').toUpperCase());
+        const isLab = s.is_lab;
+        html += `<div class="tt-slot ${isBreak?'break-slot':isLab?'lab-slot':''}">
+          <div class="time">⏰ ${s.time_slot}</div>
+          <div class="subj">${isBreak?'☕ '+(s.subject_short||'Break'):s.subject_short||'—'}${isLab?' 🔬':''}</div>
+          ${!isBreak&&s.faculty_name?`<div class="fac">👨‍🏫 ${s.faculty_name}</div>`:''}
+          ${s.room_no?`<div class="fac">🚪 ${s.room_no}</div>`:''}
+        </div>`;
+      });
+      html += '</div>';
+    });
+    wrap.innerHTML = html;
+  }catch(e){
+    wrap.innerHTML='<div class="loading" style="color:red">Error loading timetable: '+e.message+'</div>';
+  }
+}
+
+// Run all
+loadOverallAttendance();
+loadSubjects();
+loadTimetable();
+
+function logout(){ localStorage.removeItem('user'); location.href='index.html'; }
+</script>
+</body>
+</html>

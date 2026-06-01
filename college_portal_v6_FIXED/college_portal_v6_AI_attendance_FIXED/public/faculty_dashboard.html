@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>TAT — Faculty Dashboard</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:#eef1f7;min-height:100vh}
+
+    /* ── Header ── */
+    .header{background:linear-gradient(90deg,#002366,#0047ab);color:#fff;padding:10px 20px;display:flex;align-items:center;gap:14px}
+    .header-logo{width:52px;height:52px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#002366;font-size:13px;flex-shrink:0}
+    .header-text h1{font-size:18px;font-weight:bold}
+    .header-text h2{font-size:11px;opacity:.8;margin-top:2px}
+
+    /* ── Navbar ── */
+    .navbar{background:#1a1f36;display:flex;align-items:stretch;flex-wrap:wrap}
+    .navbar a{color:#b0b8d4;text-decoration:none;padding:10px 18px;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:.4px;border-right:1px solid #2a3150;display:flex;align-items:center;gap:6px;cursor:pointer;transition:.15s}
+    .navbar a:hover,.navbar a.active{background:#002366;color:#fff}
+    .nav-right{margin-left:auto;display:flex;align-items:center}
+    .nav-welcome{color:#7eb3ff;padding:10px 14px;font-size:12px}
+    .nav-logout{color:#ff6b6b;padding:10px 14px;font-size:12px;font-weight:bold;cursor:pointer;display:flex;align-items:center;gap:4px}
+    .nav-logout:hover{background:#2a1f36}
+
+    /* ── Profile Banner ── */
+    .prof-banner{background:linear-gradient(135deg,#002366 0%,#003a8c 60%,#0050b3 100%);color:#fff;padding:18px 24px;display:flex;align-items:center;gap:20px}
+    .prof-avatar{width:64px;height:64px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;flex-shrink:0;border:3px solid rgba(255,255,255,.4)}
+    .prof-info h2{font-size:18px;font-weight:700}
+    .prof-info p{font-size:12px;opacity:.85;margin-top:3px}
+    .prof-badges{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+    .pbadge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:600}
+
+    /* ── Container ── */
+    .container{max-width:1200px;margin:20px auto;padding:0 16px}
+    .section{display:none}.section.active{display:block}
+
+    /* ── Stats row ── */
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+    .stat-card{background:#fff;border:1px solid #d8e0f0;border-radius:8px;padding:16px;text-align:center;box-shadow:0 1px 4px rgba(0,35,102,.06)}
+    .stat-val{font-size:26px;font-weight:800;color:#002366}
+    .stat-lbl{font-size:10px;color:#888;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+
+    /* ── Cards ── */
+    .card{background:#fff;border:1px solid #d8e0f0;border-radius:8px;overflow:hidden;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,35,102,.06)}
+    .card-title{background:#002366;color:#fff;padding:10px 16px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+    .card-body{padding:16px}
+
+    /* ── Class Cards ── */
+    .class-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+    .class-card{background:#fff;border:2px solid #d8e0f0;border-radius:10px;padding:16px;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+    .class-card::before{content:'';position:absolute;top:0;left:0;width:5px;height:100%;background:#002366}
+    .class-card:hover{border-color:#002366;box-shadow:0 4px 16px rgba(0,35,102,.15);transform:translateY(-2px)}
+    .cc-sem{font-size:11px;font-weight:700;color:#6b7394;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .cc-branch{font-size:18px;font-weight:800;color:#002366;margin-bottom:6px}
+    .cc-subjects{font-size:11px;color:#555;line-height:1.5;margin-bottom:8px}
+    .cc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+    .cc-slots{font-size:10px;color:#888;background:#f4f7ff;padding:3px 8px;border-radius:10px}
+    .cc-btn{background:#002366;color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer}
+
+    /* ── Timetable ── */
+    .day-section{margin-bottom:16px}
+    .day-header{background:#003087;color:#fff;padding:8px 14px;border-radius:6px;font-size:13px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+    .slot-row{background:#fff;border:1px solid #e0e8f8;border-radius:6px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:14px}
+    .slot-time{font-size:12px;font-weight:700;color:#002366;min-width:100px}
+    .slot-info{flex:1}
+    .slot-subj{font-size:14px;font-weight:700;color:#1a1a2e}
+    .slot-meta{font-size:11px;color:#666;margin-top:2px}
+    .slot-room{font-size:12px;font-weight:700;background:#f4f7ff;padding:4px 10px;border-radius:6px;color:#002366;border:1px solid #d0daf0}
+    .lab-badge{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
+
+    /* ── Profile Full ── */
+    .prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .prof-field{padding:12px 0;border-bottom:1px solid #eef1f7}
+    .prof-field:last-child{border-bottom:none}
+    .pf-label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+    .pf-value{font-size:14px;color:#1a1a2e;font-weight:600}
+    .subjects-table{width:100%;border-collapse:collapse;font-size:12.5px}
+    .subjects-table th{background:#002366;color:#fff;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase}
+    .subjects-table td{padding:7px 10px;border-bottom:1px solid #eef1f7}
+    .subjects-table tr:hover td{background:#f4f7ff}
+
+    /* ── Modals ── */
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center}
+    .modal.open{display:flex}
+    .modal-box{background:#fff;border-radius:10px;width:95%;max-width:760px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+    .modal-header{background:#002366;color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+    .modal-header h3{font-size:15px;font-weight:700}
+    .modal-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1}
+    .modal-body{padding:16px;overflow-y:auto;flex:1}
+    .modal-footer{padding:12px 16px;border-top:1px solid #e0e8f0;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0}
+
+    /* ── Attendance form ── */
+    .att-header{background:#f4f7ff;border:1px solid #d0daf0;border-radius:8px;padding:12px 16px;margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+    .att-select{padding:6px 12px;border:1px solid #c0cce0;border-radius:6px;font-size:13px;min-width:200px}
+    .att-label{font-size:12px;font-weight:700;color:#555}
+    .att-student-row{display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid #eef1f7;cursor:pointer}
+    .att-student-row:hover{background:#f8faff}
+    .att-student-row input[type=checkbox]{width:17px;height:17px;accent-color:#002366;cursor:pointer}
+    .att-student-name{flex:1;font-size:13px;font-weight:600}
+    .att-student-roll{font-size:11px;color:#888;min-width:80px}
+    .att-present{color:#16a34a}
+    .att-absent{color:#dc2626}
+    .att-summary{background:#e0f2fe;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:600;color:#0c4a6e;margin-bottom:10px}
+    .att-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn-mark-all{background:#16a34a;color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700}
+    .btn-clear-all{background:#dc2626;color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700}
+
+    /* ── Misc ── */
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    th{background:#002366;color:#fff;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase}
+    td{padding:7px 10px;border-bottom:1px solid #eef1f7}
+    tr:hover td{background:#f4f7ff}
+    .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+    .badge-blue{background:#dbeafe;color:#1d4ed8}
+    .badge-green{background:#dcfce7;color:#16a34a}
+    .no-data{text-align:center;padding:40px;color:#888}
+    .no-data .icon{font-size:40px;margin-bottom:10px}
+    .no-data p{font-size:14px}
+    .btn{padding:8px 18px;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;transition:.15s}
+    .btn-primary{background:#002366;color:#fff}
+    .btn-primary:hover{background:#0036a0}
+    .btn-secondary{background:#eef1f7;color:#002366;border:1px solid #c0cce0}
+    .btn-success{background:#16a34a;color:#fff}
+    .btn-success:hover{background:#15803d}
+    .warn-box{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:14px 18px;display:flex;gap:12px;align-items:flex-start}
+    .warn-box .icon{font-size:24px;flex-shrink:0}
+    .warn-box p{font-size:13px;color:#92400e}
+    footer{text-align:center;padding:14px;background:#1a1f36;color:#6b7294;font-size:12px;margin-top:20px}
+
+    .btn-report{background:#7c3aed;color:#fff;border:none;padding:4px 10px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;margin-top:6px}
+    .btn-report:hover{background:#6d28d9}
+    .att-report-bar{display:inline-block;height:10px;border-radius:5px;background:#16a34a;vertical-align:middle}
+    .att-report-pct{font-weight:700;font-size:12px;margin-left:6px}
+    .att-low{color:#dc2626}.att-ok{color:#16a34a}.att-warn{color:#d97706}
+    .report-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;background:#f4f7ff;border:1px solid #d0daf0;border-radius:8px;padding:14px;margin-bottom:16px}
+    .rf-group{display:flex;flex-direction:column;gap:4px}
+    .rf-label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase}
+    .rf-select{padding:7px 12px;border:1px solid #c0cce0;border-radius:6px;font-size:13px;min-width:180px}
+    .pct-bar-wrap{display:flex;align-items:center;gap:6px}
+    .pct-bar-bg{width:80px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;flex-shrink:0}
+    .pct-bar-fill{height:100%;border-radius:4px;transition:.3s}
+    .log-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin:1px}
+    .log-present{background:#16a34a}.log-absent{background:#dc2626}.log-none{background:#e5e7eb}
+    .log-legend{display:flex;gap:12px;align-items:center;font-size:11px;color:#555;margin-bottom:8px}
+    .class-card-actions{display:flex;gap:6px;margin-top:8px}
+
+    @media(max-width:640px){
+      .stats-row{grid-template-columns:1fr 1fr}
+      .prof-grid{grid-template-columns:1fr}
+      .class-grid{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">TAT</div>
+  <div class="header-text">
+    <h1>Trident Academy of Technology</h1>
+    <h2>FACULTY PORTAL — E-GOVERNANCE SYSTEM v3.0</h2>
+  </div>
+</div>
+
+<nav class="navbar">
+  <a class="active" onclick="showSec('timetable',this)">📅 Timetable</a>
+  <a onclick="showSec('classes',this)">🏫 My Classes</a>
+  <a onclick="showSec('attreport',this)" id="nav-attreport">📊 Attendance Report</a>
+  <a onclick="showSec('aireport',this)" id="nav-aireport">🤖 AI Class Reports</a>
+  <a onclick="showSec('profile',this)">👤 My Profile</a>
+  <a onclick="showSec('changepass',this)">🔑 Change Password</a>
+  <div class="nav-right">
+    <div class="nav-welcome" id="nav-welcome">Loading…</div>
+    <div class="nav-logout" onclick="logout()">⏻ Logout</div>
+  </div>
+</nav>
+
+<!-- Profile Banner -->
+<div class="prof-banner" id="prof-banner" style="display:none">
+  <div class="prof-avatar" id="banner-avatar">?</div>
+  <div class="prof-info">
+    <h2 id="banner-name">—</h2>
+    <p id="banner-desig">—</p>
+    <div class="prof-badges">
+      <span class="pbadge" id="banner-code">—</span>
+      <span class="pbadge" id="banner-dept">—</span>
+      <span class="pbadge" id="banner-qual">—</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ══ TIMETABLE ══ -->
+  <div class="section active" id="sec-timetable">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" id="st-total">—</div><div class="stat-lbl">Periods / Week</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-classes">—</div><div class="stat-lbl">Classes</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-subjects">—</div><div class="stat-lbl">Subjects</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-code" style="font-size:20px">—</div><div class="stat-lbl">Faculty Code</div></div>
+    </div>
+    <div id="tt-warn-notmapped" style="display:none" class="warn-box" style="margin-bottom:16px">
+      <span class="icon">⚠️</span>
+      <div><strong>Account not linked</strong><p>Ask Admin → Faculty Mapping → link your User ID (<span id="tt-uid"></span>) to your shortcode.</p></div>
+    </div>
+    <div id="timetable-container"></div>
+  </div>
+
+  <!-- ══ MY CLASSES ══ -->
+  <div class="section" id="sec-classes">
+    <div class="card">
+      <div class="card-title">🏫 My Classes — Click a class to view students &amp; take attendance</div>
+      <div class="card-body">
+        <div id="classes-warn-notmapped" style="display:none" class="warn-box">
+          <span class="icon">⚠️</span>
+          <div><strong>Account not linked</strong><p>Ask Admin to map your User ID in Faculty Mapping.</p></div>
+        </div>
+        <div id="classes-container" class="class-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PROFILE ══ -->
+  <div class="section" id="sec-profile">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div class="card-title">👤 Personal Details</div>
+        <div class="card-body" id="profile-details"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 Subjects I Teach (Active Timetable)</div>
+        <div class="card-body" id="profile-subjects"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ATTENDANCE REPORT ══ -->
+  <div class="section" id="sec-attreport">
+    <div class="card">
+      <div class="card-title">📊 Attendance Report — View & Track per Subject</div>
+      <div class="card-body">
+        <div class="report-filters">
+          <div class="rf-group">
+            <div class="rf-label">Class (Branch / Semester)</div>
+            <select id="rpt-class" class="rf-select" onchange="onRptClassChange()">
+              <option value="">-- Select Class --</option>
+            </select>
+          </div>
+          <div class="rf-group">
+            <div class="rf-label">Subject</div>
+            <select id="rpt-subject" class="rf-select" onchange="loadAttendanceReportData()">
+              <option value="">-- Select Subject --</option>
+            </select>
+          </div>
+          <div class="rf-group" style="justify-content:flex-end">
+            <button class="btn btn-primary" onclick="loadAttendanceReportData()">🔄 Refresh</button>
+          </div>
+        </div>
+        <div id="rpt-info" style="margin-bottom:12px;font-size:13px;color:#555"></div>
+        <div id="rpt-body">
+          <div class="no-data"><div class="icon">📊</div><p>Select a class and subject to view attendance.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CHANGE PASSWORD ══ -->
+  <div class="section" id="sec-changepass">
+    <div class="card" style="max-width:440px;margin:0 auto">
+      <div class="card-title">🔑 Change Password</div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px">Current Password</label>
+            <input type="password" id="cp-current" placeholder="Current password" style="width:100%;padding:8px 12px;border:1px solid #c0cce0;border-radius:6px;font-size:13px">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px">New Password</label>
+            <input type="password" id="cp-new" placeholder="New password" style="width:100%;padding:8px 12px;border:1px solid #c0cce0;border-radius:6px;font-size:13px">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px">Confirm New Password</label>
+            <input type="password" id="cp-confirm" placeholder="Confirm new password" style="width:100%;padding:8px 12px;border:1px solid #c0cce0;border-radius:6px;font-size:13px">
+          </div>
+          <div id="cp-msg" style="font-size:13px;min-height:20px"></div>
+          <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ══ MODAL: STUDENT LIST ══ -->
+<div class="modal" id="modal-students">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modal-class-title">Class Students</h3>
+      <button class="modal-close" onclick="closeModal('modal-students')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-class-info" class="att-header" style="margin-bottom:14px"></div>
+      <div id="students-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-students')">Close</button>
+      <button class="btn btn-primary" onclick="openAttendance()">✍️ Take Attendance</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: TAKE ATTENDANCE ══ -->
+<div class="modal" id="modal-attendance">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="att-modal-title">Take Attendance</h3>
+      <button class="modal-close" onclick="closeModal('modal-attendance')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="att-header">
+        <div>
+          <div class="att-label">Subject</div>
+          <select id="att-subject" class="att-select">
+            <option value="">-- Select Subject --</option>
+          </select>
+        </div>
+        <div>
+          <div class="att-label">Date</div>
+          <input type="date" id="att-date" class="att-select" style="min-width:160px">
+        </div>
+        <div style="margin-left:auto">
+          <div class="att-actions">
+            <button class="btn-mark-all" onclick="markAll(true)">✔ All Present</button>
+            <button class="btn-clear-all" onclick="markAll(false)">✖ All Absent</button>
+          </div>
+        </div>
+      </div>
+      <div id="att-summary" class="att-summary">Select a subject to begin</div>
+      <div id="att-students-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-attendance')">Cancel</button>
+      <button class="btn btn-success" onclick="submitAttendance()">✅ Submit Attendance</button>
+    </div>
+  </div>
+</div>
+
+<footer>Trident Academy of Technology — Faculty Portal v3.0 &nbsp;|&nbsp; TAT, Bhubaneswar, Odisha</footer>
+
+<script>
+// ── State ──────────────────────────────────────────────────
+let user = null;
+let facultyProfile = null;
+let currentClassInfo = null;   // {semester, branch, subjects}
+let currentStudents = [];
+
+// ── Init ───────────────────────────────────────────────────
+window.onload = async function(){
+  user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+  if(!user || user.role !== 'Faculty'){
+    window.location.href = 'index.html'; return;
+  }
+  document.getElementById('nav-welcome').textContent = '👋 ' + (user.name || user.data?.name || user.data?.user_id);
+  document.getElementById('att-date').value = new Date().toISOString().split('T')[0];
+
+  await loadProfile();
+  loadTimetable();
+  loadClasses();
+};
+
+function getUserId(){
+  return user?.data?.user_id || user?.userId || '';
+}
+
+// ── Nav ────────────────────────────────────────────────────
+function showSec(name, el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.navbar a').forEach(a=>a.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  if(name==='attreport') populateRptClassDropdown();
+}
+
+function logout(){
+  localStorage.removeItem('user'); sessionStorage.removeItem('user');
+  window.location.href = 'index.html';
+}
+
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+
+// ── Load Profile ───────────────────────────────────────────
+async function loadProfile(){
+  try{
+    const r = await fetch('/api/faculty/profile?userId='+getUserId());
+    const d = await r.json();
+    if(!d.success || !d.faculty){ showBannerFallback(); return; }
+    facultyProfile = d.faculty;
+    renderBanner(d.faculty);
+    renderProfileSection(d.faculty);
+  } catch(e){ showBannerFallback(); }
+}
+
+function renderBanner(f){
+  const initials = f.full_name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  document.getElementById('banner-avatar').textContent = initials;
+  document.getElementById('banner-name').textContent = f.full_name;
+  document.getElementById('banner-desig').textContent = (f.designation||'Faculty') + ' — Dept. of ' + (f.department||'CSE');
+  document.getElementById('banner-code').textContent = '📌 ' + f.shortcode;
+  document.getElementById('banner-dept').textContent = '🏢 ' + (f.department||'CSE');
+  document.getElementById('banner-qual').textContent = '🎓 ' + (f.qualification||'—');
+  document.getElementById('prof-banner').style.display = 'flex';
+}
+
+function showBannerFallback(){
+  const name = user?.name || user?.data?.name || 'Faculty';
+  const uid = getUserId();
+  document.getElementById('banner-avatar').textContent = name[0]?.toUpperCase()||'F';
+  document.getElementById('banner-name').textContent = name;
+  document.getElementById('banner-desig').textContent = 'Faculty — CSE Department';
+  document.getElementById('banner-code').textContent = '📌 ' + uid;
+  document.getElementById('banner-dept').textContent = '🏢 CSE';
+  document.getElementById('banner-qual').textContent = '⚠️ Ask admin to map profile';
+  document.getElementById('prof-banner').style.display = 'flex';
+}
+
+function renderProfileSection(f){
+  const fields = [
+    ['Full Name', f.full_name],
+    ['Faculty Code (Shortcode)', f.shortcode],
+    ['Designation', f.designation||'—'],
+    ['Qualification', f.qualification||'—'],
+    ['Department', f.department||'CSE'],
+    ['Date of Joining', f.joining_date||'—'],
+    ['Nature of Association', f.nature_of_association||'Regular'],
+    ['Specialization', f.specialization||'—'],
+    ['Email', f.email||'—'],
+    ['Login User ID', f.user_id||'—'],
+    ['Active Batch', f.active_batch||'No active batch'],
+  ];
+  document.getElementById('profile-details').innerHTML = fields.map(([l,v])=>`
+    <div class="prof-field">
+      <div class="pf-label">${l}</div>
+      <div class="pf-value">${v}</div>
+    </div>`).join('');
+
+  const subs = f.subjects_taught||[];
+  if(!subs.length){
+    document.getElementById('profile-subjects').innerHTML =
+      '<div class="no-data"><div class="icon">📚</div><p>No timetable data found.</p></div>';
+    return;
+  }
+  const rows = subs.map(s=>`
+    <tr>
+      <td><strong>${s.subject_short||'—'}</strong></td>
+      <td>${s.subject_full||'—'}</td>
+      <td><span class="badge badge-blue">Sem ${s.semester}</span></td>
+      <td>${s.branch}</td>
+    </tr>`).join('');
+  document.getElementById('profile-subjects').innerHTML = `
+    <table class="subjects-table">
+      <thead><tr><th>Code</th><th>Subject</th><th>Semester</th><th>Section</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── Load Timetable ─────────────────────────────────────────
+async function loadTimetable(){
+  try{
+    const r = await fetch('/api/faculty/timetable?userId='+getUserId());
+    const d = await r.json();
+    if(!d.success || !d.slots){ showTTNotMapped(); return; }
+    if(!d.facultyCode){ showTTNotMapped(); return; }
+
+    const slots = d.slots||[];
+    document.getElementById('st-code').textContent = d.facultyCode;
+
+    if(!slots.length){
+      document.getElementById('timetable-container').innerHTML =
+        '<div class="no-data"><div class="icon">📅</div><p>No slots assigned in the active timetable.</p></div>';
+      document.getElementById('st-total').textContent = '0';
+      document.getElementById('st-classes').textContent = '0';
+      document.getElementById('st-subjects').textContent = '0';
+      return;
+    }
+
+    const byDay = {};
+    const dayOrder = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    slots.forEach(s=>{
+      if(!byDay[s.day_of_week]) byDay[s.day_of_week]=[];
+      byDay[s.day_of_week].push(s);
+    });
+
+    const uniqueBranches = new Set(slots.map(s=>s.branch));
+    const uniqueSubjects = new Set(slots.map(s=>s.subject_short).filter(Boolean));
+    document.getElementById('st-total').textContent = slots.length;
+    document.getElementById('st-classes').textContent = uniqueBranches.size;
+    document.getElementById('st-subjects').textContent = uniqueSubjects.size;
+
+    const html = dayOrder.filter(d=>byDay[d]).map(day=>`
+      <div class="day-section">
+        <div class="day-header">📆 ${day}</div>
+        ${byDay[day].map(s=>`
+          <div class="slot-row">
+            <div class="slot-time">🕐 ${s.time_slot}</div>
+            <div class="slot-info">
+              <div class="slot-subj">${s.subject_full||s.subject_short||'—'}
+                ${s.is_lab?'<span class="lab-badge">LAB</span>':''}
+              </div>
+              <div class="slot-meta">
+                <span class="badge badge-blue">Sem ${s.semester}</span>
+                ${s.branch} ${s.notes?'· '+s.notes:''}
+              </div>
+            </div>
+            <div class="slot-room">${s.room_no||'—'}</div>
+          </div>`).join('')}
+      </div>`).join('');
+
+    document.getElementById('timetable-container').innerHTML = html;
+  } catch(e){ showTTNotMapped(); }
+}
+
+function showTTNotMapped(){
+  document.getElementById('tt-uid').textContent = getUserId();
+  document.getElementById('tt-warn-notmapped').style.display='flex';
+  document.getElementById('st-total').textContent='0';
+  document.getElementById('st-classes').textContent='0';
+  document.getElementById('st-subjects').textContent='0';
+  document.getElementById('st-code').textContent='—';
+}
+
+// ── Load Classes ───────────────────────────────────────────
+async function loadClasses(){
+  try{
+    const r = await fetch('/api/faculty/my-classes?userId='+getUserId());
+    const d = await r.json();
+    if(!d.success){ showClassesNotMapped(); return; }
+
+    const classes = d.classes||[];
+    if(!classes.length){
+      document.getElementById('classes-container').innerHTML =
+        '<div class="no-data"><div class="icon">🏫</div><p>No classes assigned in the active timetable.</p></div>';
+      return;
+    }
+
+    const subjectDetails = {}; // shortcode → full name map
+    if(facultyProfile?.subjects_taught){
+      facultyProfile.subjects_taught.forEach(s=>{ subjectDetails[s.subject_short]=s.subject_full||s.subject_short; });
+    }
+
+    document.getElementById('classes-container').innerHTML = classes.map((c,i)=>{
+      const semLabel = ordinal(c.semester)+' Semester';
+      const subjList = (c.subjects||'').split(',').map(s=>s.trim()).filter(Boolean);
+      return `<div class="class-card">
+        <div class="cc-sem">${semLabel}</div>
+        <div class="cc-branch">📚 ${c.branch}</div>
+        <div class="cc-subjects">${subjList.slice(0,4).join(' · ')+(subjList.length>4?' …':'')}</div>
+        <div class="cc-footer"><span class="cc-slots">${c.slot_count} slots/wk</span></div>
+        <div class="class-card-actions">
+          <button class="cc-btn" onclick="openClassStudents('${c.branch}','${c.semester}',${i})">View Students →</button>
+          <button class="btn-report" onclick="openAttendanceReport('${c.branch}','${c.semester}',${i})">📊 Report</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    // store class data globally for attendance
+    window._classData = classes;
+  } catch(e){ showClassesNotMapped(); }
+}
+
+function showClassesNotMapped(){
+  document.getElementById('classes-warn-notmapped').style.display='flex';
+}
+
+// ── Open Class Students Modal ──────────────────────────────
+async function openClassStudents(branch, semester, idx){
+  currentClassInfo = { branch, semester, ...(window._classData?.[idx]||{}) };
+  document.getElementById('modal-class-title').textContent = `Students — Sem ${semester} | ${branch}`;
+  document.getElementById('modal-class-info').innerHTML =
+    `<div><div class="att-label">Branch / Section</div><strong>${branch}</strong></div>
+     <div><div class="att-label">Semester</div><strong>${ordinal(semester)} Semester</strong></div>
+     <div><div class="att-label">Subjects</div><span style="font-size:12px">${currentClassInfo.subjects||'—'}</span></div>`;
+
+  document.getElementById('students-list').innerHTML = '<div class="no-data"><p>Loading…</p></div>';
+  openModal('modal-students');
+
+  try{
+    const url = `/api/faculty/class-students?branch=${encodeURIComponent(branch)}&semester=${encodeURIComponent(semester)}`;
+    const r = await fetch(url);
+    currentStudents = await r.json();
+    if(!currentStudents.length){
+      document.getElementById('students-list').innerHTML =
+        '<div class="no-data"><div class="icon">👥</div><p>No students enrolled in this class.</p></div>';
+      return;
+    }
+    const rows = currentStudents.map((s,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td><strong>${s.full_name||'—'}</strong></td>
+        <td>${s.student_id}</td>
+        <td>${s.class_roll||'—'}</td>
+        <td>${s.section||'—'}</td>
+      </tr>`).join('');
+    document.getElementById('students-list').innerHTML = `
+      <p style="font-size:12px;color:#555;margin-bottom:10px">Total: <strong>${currentStudents.length}</strong> students</p>
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Student ID</th><th>Class Roll</th><th>Section</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } catch(e){
+    document.getElementById('students-list').innerHTML = '<div class="no-data"><p>Failed to load students.</p></div>';
+  }
+}
+
+// ── Open Attendance Modal ──────────────────────────────────
+function openAttendance(){
+  if(!currentStudents.length){ alert('No students loaded.'); return; }
+  closeModal('modal-students');
+
+  const info = currentClassInfo;
+  document.getElementById('att-modal-title').textContent = `Attendance — Sem ${info.semester} | ${info.branch}`;
+
+  // Populate subject dropdown
+  const select = document.getElementById('att-subject');
+  select.innerHTML = '<option value="">-- Select Subject --</option>';
+  const subjectDetails = {};
+  if(facultyProfile?.subjects_taught){
+    facultyProfile.subjects_taught.forEach(s=>{
+      if(String(s.semester)===String(info.semester) && s.branch===info.branch){
+        subjectDetails[s.subject_short]=s.subject_full||s.subject_short;
+      }
+    });
+  }
+  // Fallback: parse from class data
+  if(!Object.keys(subjectDetails).length && info.subject_details){
+    info.subject_details.split(';;').forEach(pair=>{
+      const [code,name]=pair.split('||');
+      if(code && code.trim()) subjectDetails[code.trim()]=name||code;
+    });
+  }
+  Object.entries(subjectDetails).forEach(([code,name])=>{
+    const opt = document.createElement('option');
+    opt.value = code; opt.textContent = code + ' — ' + name;
+    select.appendChild(opt);
+  });
+
+  select.onchange = updateAttSummary;
+
+  // Render student checklist
+  document.getElementById('att-students-list').innerHTML = currentStudents.map(s=>`
+    <div class="att-student-row" onclick="toggleCheck('chk-${s.student_id}')">
+      <input type="checkbox" id="chk-${s.student_id}" value="${s.student_id}" checked onchange="updateAttSummary()">
+      <div class="att-student-name">${s.full_name}</div>
+      <div class="att-student-roll">${s.student_id}</div>
+      <div class="att-roll2" style="font-size:11px;color:#888;min-width:60px">${s.class_roll||''}</div>
+    </div>`).join('');
+
+  updateAttSummary();
+  openModal('modal-attendance');
+}
+
+function toggleCheck(id){
+  const cb = document.getElementById(id);
+  if(cb){ cb.checked = !cb.checked; updateAttSummary(); }
+}
+
+function markAll(present){
+  document.querySelectorAll('#att-students-list input[type=checkbox]').forEach(cb=>cb.checked=present);
+  updateAttSummary();
+}
+
+function updateAttSummary(){
+  const total = document.querySelectorAll('#att-students-list input[type=checkbox]').length;
+  const present = document.querySelectorAll('#att-students-list input[type=checkbox]:checked').length;
+  document.getElementById('att-summary').innerHTML =
+    `<span class="att-present">✔ Present: ${present}</span> &nbsp;|&nbsp;
+     <span class="att-absent">✖ Absent: ${total-present}</span> &nbsp;|&nbsp;
+     Total: ${total}`;
+}
+
+async function submitAttendance(){
+  const subjectCode = document.getElementById('att-subject').value;
+  if(!subjectCode){ alert('Please select a subject.'); return; }
+
+  const allIds = currentStudents.map(s=>s.student_id);
+  const presentIds = [...document.querySelectorAll('#att-students-list input[type=checkbox]:checked')].map(cb=>cb.value);
+
+  try{
+    const r = await fetch('/api/attendance/take-class',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-user-id':getUserId()},
+      body:JSON.stringify({
+        branch: currentClassInfo.branch,
+        semester: currentClassInfo.semester,
+        subjectCode,
+        allStudentIds: allIds,
+        presentStudentIds: presentIds,
+        date: document.getElementById('att-date').value
+      })
+    });
+    const d = await r.json();
+    if(d.success){
+      closeModal('modal-attendance');
+      // After submitting, offer to jump to the attendance report
+      const goReport = confirm('✅ ' + d.message + '\n\nView attendance report for this class now?');
+      if(goReport){
+        openAttendanceReport(currentClassInfo.branch, currentClassInfo.semester, null, subjectCode);
+      }
+    } else {
+      alert('⚠️ ' + d.message);
+    }
+  } catch(e){ alert('Failed to submit. Check server.'); }
+}
+
+// ── Attendance Report ─────────────────────────────────────
+let _rptClassData = [];   // populated from _classData when report tab opens
+
+function populateRptClassDropdown(){
+  const sel = document.getElementById('rpt-class');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">-- Select Class --</option>';
+  _rptClassData = window._classData || [];
+  _rptClassData.forEach((c,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `Sem ${c.semester} — ${c.branch}`;
+    sel.appendChild(opt);
+  });
+  if(prev) sel.value = prev;
+  onRptClassChange();
+}
+
+function onRptClassChange(){
+  const idx = document.getElementById('rpt-class').value;
+  const sel = document.getElementById('rpt-subject');
+  sel.innerHTML = '<option value="">-- Select Subject --</option>';
+  document.getElementById('rpt-body').innerHTML =
+    '<div class="no-data"><div class="icon">📊</div><p>Select a subject to view attendance.</p></div>';
+  document.getElementById('rpt-info').textContent = '';
+  if(idx === '') return;
+
+  const cls = _rptClassData[parseInt(idx)];
+  if(!cls) return;
+
+  // Build subject options from subject_details or facultyProfile
+  const subjectDetails = {};
+  if(facultyProfile?.subjects_taught){
+    facultyProfile.subjects_taught.forEach(s=>{
+      if(String(s.semester)===String(cls.semester)) subjectDetails[s.subject_short]=s.subject_full||s.subject_short;
+    });
+  }
+  if(!Object.keys(subjectDetails).length && cls.subject_details){
+    cls.subject_details.split(';;').forEach(pair=>{
+      const [code,name]=pair.split('||');
+      if(code&&code.trim()) subjectDetails[code.trim()]=name||code;
+    });
+  }
+  Object.entries(subjectDetails).forEach(([code,name])=>{
+    const opt = document.createElement('option');
+    opt.value = code; opt.textContent = code + ' — ' + name;
+    sel.appendChild(opt);
+  });
+}
+
+async function openAttendanceReport(branch, semester, idx, preSelectSubject){
+  // Navigate to report section
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.navbar a').forEach(a=>a.classList.remove('active'));
+  document.getElementById('sec-attreport').classList.add('active');
+  document.getElementById('nav-attreport').classList.add('active');
+
+  populateRptClassDropdown();
+
+  // Pre-select the class
+  const classIdx = idx !== null ? idx :
+    (_rptClassData.findIndex(c=>String(c.branch)===String(branch)&&String(c.semester)===String(semester)));
+  if(classIdx >= 0){
+    document.getElementById('rpt-class').value = classIdx;
+    onRptClassChange();
+  }
+
+  // Pre-select subject if given
+  if(preSelectSubject){
+    setTimeout(()=>{
+      document.getElementById('rpt-subject').value = preSelectSubject;
+      loadAttendanceReportData();
+    }, 100);
+  }
+}
+
+async function loadAttendanceReportData(){
+  const classIdx = document.getElementById('rpt-class').value;
+  const subjectCode = document.getElementById('rpt-subject').value;
+  if(classIdx===''||!subjectCode){
+    document.getElementById('rpt-info').textContent='';
+    document.getElementById('rpt-body').innerHTML =
+      '<div class="no-data"><div class="icon">📊</div><p>Select both class and subject.</p></div>';
+    return;
+  }
+
+  const cls = _rptClassData[parseInt(classIdx)];
+  if(!cls) return;
+
+  document.getElementById('rpt-body').innerHTML =
+    '<div class="no-data"><p>⏳ Loading attendance data…</p></div>';
+  document.getElementById('rpt-info').textContent = '';
+
+  try{
+    const url = `/api/faculty/attendance-summary?branch=${encodeURIComponent(cls.branch)}&semester=${cls.semester}&subjectCode=${encodeURIComponent(subjectCode)}`;
+    const r = await fetch(url);
+    const d = await r.json();
+    if(!d.success){ document.getElementById('rpt-body').innerHTML='<div class="no-data"><p>Error: '+d.message+'</p></div>'; return; }
+
+    const records = d.records || [];
+    const log = d.log || [];
+
+    if(!records.length){
+      document.getElementById('rpt-body').innerHTML =
+        '<div class="no-data"><div class="icon">👥</div><p>No students found for this class/subject yet.</p></div>';
+      return;
+    }
+
+    // Build log map: student_id → array of {date, status}
+    const logMap = {};
+    log.forEach(l=>{
+      if(!logMap[l.student_id]) logMap[l.student_id]=[];
+      logMap[l.student_id].push(l);
+    });
+
+    // Get unique dates in log (last 30 days) for column headers
+    const uniqueDates = [...new Set(log.map(l=>l.class_date))].sort().reverse().slice(0,15);
+
+    const classesHeld = records[0]?.classes_held || 0;
+    const presentCount = records.filter(r=>r.percentage>=75).length;
+    const absentCount  = records.filter(r=>r.percentage<75).length;
+
+    document.getElementById('rpt-info').innerHTML =
+      `<strong>${cls.branch}</strong> · Sem ${cls.semester} · <strong>${subjectCode}</strong> &nbsp;|&nbsp;
+       Classes Held: <strong>${classesHeld}</strong> &nbsp;|&nbsp;
+       <span class="att-ok">≥75%: ${presentCount}</span> &nbsp;|&nbsp;
+       <span class="att-low">&lt;75%: ${absentCount}</span>`;
+
+    const logDateHeaders = uniqueDates.map(d=>{
+      const dt = new Date(d);
+      return `<th style="font-size:10px;text-align:center;padding:4px 6px">${dt.getDate()}/${dt.getMonth()+1}</th>`;
+    }).join('');
+
+    const rows = records.map((rec,i)=>{
+      const pct = parseFloat(rec.percentage)||0;
+      const barColor = pct>=75?'#16a34a':pct>=60?'#d97706':'#dc2626';
+      const pctClass = pct>=75?'att-ok':pct>=60?'att-warn':'att-low';
+
+      // Log dots for last N dates
+      const logDots = uniqueDates.map(d=>{
+        const entry = (logMap[rec.student_id]||[]).find(l=>l.class_date===d);
+        if(!entry) return `<td style="text-align:center"><span class="log-dot log-none" title="No record"></span></td>`;
+        return `<td style="text-align:center"><span class="log-dot ${entry.status==='present'?'log-present':'log-absent'}" title="${entry.status}"></span></td>`;
+      }).join('');
+
+      return `<tr>
+        <td>${i+1}</td>
+        <td><strong>${rec.full_name||rec.student_id}</strong></td>
+        <td>${rec.student_id}</td>
+        <td style="text-align:center">${rec.classes_held}</td>
+        <td style="text-align:center">${rec.classes_attended}</td>
+        <td>
+          <div class="pct-bar-wrap">
+            <div class="pct-bar-bg"><div class="pct-bar-fill" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div>
+            <span class="${pctClass}">${pct}%</span>
+          </div>
+        </td>
+        ${logDots}
+      </tr>`;
+    }).join('');
+
+    document.getElementById('rpt-body').innerHTML = `
+      <div class="log-legend">
+        <span><span class="log-dot log-present"></span> Present</span>
+        <span><span class="log-dot log-absent"></span> Absent</span>
+        <span><span class="log-dot log-none"></span> No record</span>
+        <span style="margin-left:auto;font-size:10px;color:#888">Showing last ${uniqueDates.length} class date(s)</span>
+      </div>
+      <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Name</th><th>Student ID</th>
+            <th style="text-align:center">Held</th>
+            <th style="text-align:center">Attended</th>
+            <th>%</th>
+            ${logDateHeaders}
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      </div>`;
+  }catch(e){
+    document.getElementById('rpt-body').innerHTML='<div class="no-data"><p>Failed to load. Check server.</p></div>';
+  }
+}
+
+// ── Change Password ────────────────────────────────────────
+async function changePassword(){
+  const cur = document.getElementById('cp-current').value;
+  const nw  = document.getElementById('cp-new').value;
+  const cf  = document.getElementById('cp-confirm').value;
+  const msg = document.getElementById('cp-msg');
+  if(!cur||!nw){ msg.style.color='#dc2626'; msg.textContent='Fill in all fields.'; return; }
+  if(nw!==cf){ msg.style.color='#dc2626'; msg.textContent='New passwords do not match.'; return; }
+  if(nw.length<6){ msg.style.color='#dc2626'; msg.textContent='Password must be at least 6 characters.'; return; }
+  try{
+    const r = await fetch('/api/users/'+getUserId()+'/password',{
+      method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({currentPassword:cur,newPassword:nw})
+    });
+    const d = await r.json();
+    if(d.success){ msg.style.color='#16a34a'; msg.textContent='✅ Password updated successfully!';
+      document.getElementById('cp-current').value='';
+      document.getElementById('cp-new').value='';
+      document.getElementById('cp-confirm').value='';
+    } else { msg.style.color='#dc2626'; msg.textContent=d.message; }
+  } catch(e){ msg.style.color='#dc2626'; msg.textContent='Server error.'; }
+}
+
+// ── Helpers ────────────────────────────────────────────────
+function ordinal(n){
+  const s=['th','st','nd','rd'], v=n%100;
+  return n+(s[(v-20)%10]||s[v]||s[0]);
+}
+</script>
+
+  <!-- ── AI Class Reports Section ─────────────────────────── -->
+  <div class="section" id="sec-aireport">
+    <div class="section-title">🤖 AI Attendance Class Reports</div>
+    <p style="color:#94a3b8;font-size:13px;margin-bottom:16px">
+      Completed AI attendance sessions for your subjects — finalized by the admin.
+    </p>
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <select id="air-days" onchange="loadAIReports()" style="padding:7px 12px;border:1px solid #334155;border-radius:6px;background:#1e293b;color:#e2e8f0;font-size:13px">
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+      <button onclick="loadAIReports()" style="padding:7px 14px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">🔄 Refresh</button>
+    </div>
+    <div id="air-loading" style="display:none;color:#94a3b8;font-size:13px">Loading…</div>
+    <div id="air-list"></div>
+  </div>
+
+<script>
+// ── AI Class Reports ─────────────────────────────────────────
+async function loadAIReports(){
+  const days = document.getElementById('air-days')?.value || 30;
+  const listEl = document.getElementById('air-list');
+  const loadEl = document.getElementById('air-loading');
+  listEl.innerHTML = '';
+  loadEl.style.display = 'block';
+  try{
+    const headers = {'Content-Type':'application/json'};
+    const u = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+    if(u) headers['x-user-id'] = u.user_id || u.data?.user_id || '';
+    const res = await fetch(`/api/ai-attendance/faculty-sessions?days=${days}`, {headers});
+    const data = await res.json();
+    loadEl.style.display = 'none';
+    if(!data.success){ listEl.innerHTML = `<p style="color:#f87171">${data.message}</p>`; return; }
+    if(!data.sessions?.length){
+      listEl.innerHTML = '<div style="color:#94a3b8;padding:24px;text-align:center">No AI attendance sessions found for this period.</div>';
+      return;
+    }
+    listEl.innerHTML = data.sessions.map(s => {
+      const date = s.finalized_at ? new Date(s.finalized_at).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}) : '—';
+      const present  = (s.students||[]).filter(st=>st.present);
+      const absent   = (s.students||[]).filter(st=>!st.present);
+      const pct = s.total_students>0 ? Math.round((s.present_count/s.total_students)*100) : 0;
+      const barColor = pct>=75?'#22c55e':pct>=50?'#f59e0b':'#ef4444';
+      return `
+      <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:16px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div>
+            <span style="font-size:15px;font-weight:600;color:#e2e8f0">${s.subject_code||s.subject_name||'Manual Session'}</span>
+            <span style="font-size:12px;color:#64748b;margin-left:10px">${s.branch} · Sem ${s.semester}</span>
+          </div>
+          <div style="font-size:12px;color:#64748b">${date}</div>
+        </div>
+        <div style="margin:10px 0 6px;display:flex;gap:16px;font-size:13px">
+          <span style="color:#22c55e">✔ Present: <strong>${s.present_count||0}</strong></span>
+          <span style="color:#ef4444">✖ Absent: <strong>${s.absent_count||0}</strong></span>
+          <span style="color:#94a3b8">Total: <strong>${s.total_students||0}</strong></span>
+          <span style="color:${barColor};font-weight:600">${pct}%</span>
+        </div>
+        <div style="background:#0f172a;border-radius:4px;height:6px;margin-bottom:10px">
+          <div style="background:${barColor};height:6px;border-radius:4px;width:${pct}%"></div>
+        </div>
+        <details style="font-size:12px;color:#94a3b8">
+          <summary style="cursor:pointer;color:#7eb3ff;margin-bottom:6px">View student list (${(s.students||[]).length} students)</summary>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-top:8px;max-height:220px;overflow-y:auto">
+            ${(s.students||[]).sort((a,b)=>b.present-a.present).map(st=>`
+              <div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid #1e293b">
+                <span style="color:${st.present?'#22c55e':'#ef4444'};font-size:14px">${st.present?'✔':'✖'}</span>
+                <span style="color:#e2e8f0">${st.name}</span>
+                <span style="color:#475569;font-size:11px">(${st.student_id})</span>
+              </div>`).join('')}
+          </div>
+        </details>
+      </div>`;
+    }).join('');
+  }catch(e){
+    loadEl.style.display='none';
+    listEl.innerHTML=`<p style="color:#f87171">Error: ${e.message}</p>`;
+  }
+}
+// Auto-load when section becomes active
+const _origShowSec = window.showSec;
+window.showSec = function(name, el){
+  _origShowSec && _origShowSec(name, el);
+  if(name==='aireport') loadAIReports();
+};
+</script>
+
+</body>
+</html>

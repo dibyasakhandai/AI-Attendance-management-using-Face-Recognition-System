@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>How to Run — AI Attendance</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f8;color:#1e2440;min-height:100vh;padding:30px 20px}
+  .wrap{max-width:860px;margin:0 auto}
+  h1{font-size:26px;font-weight:800;color:#1e2440;margin-bottom:6px}
+  .sub{font-size:14px;color:#666;margin-bottom:30px}
+  .card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:20px;overflow:hidden}
+  .card-hdr{padding:13px 20px;border-bottom:1px solid #eef1f7;background:#f8faff;display:flex;align-items:center;gap:8px}
+  .card-hdr h2{font-size:15px;font-weight:700;color:#1e2440}
+  .card-body{padding:20px}
+  .step{display:flex;gap:14px;margin-bottom:18px}
+  .step:last-child{margin-bottom:0}
+  .num{width:30px;height:30px;min-width:30px;border-radius:50%;background:#4a90e2;color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+  .step-content h3{font-size:14px;font-weight:700;margin-bottom:5px}
+  .step-content p{font-size:13px;color:#555;line-height:1.6;margin-bottom:6px}
+  code{background:#f0f6ff;border:1px solid #c7d8f0;border-radius:4px;padding:2px 7px;font-family:Consolas,monospace;font-size:12.5px;color:#1a6cb5}
+  pre{background:#1e2440;color:#e2e8f0;padding:14px 16px;border-radius:8px;font-family:Consolas,monospace;font-size:13px;overflow-x:auto;margin:8px 0;line-height:1.7}
+  pre .cmt{color:#64748b}
+  pre .kw{color:#93c5fd}
+  pre .str{color:#86efac}
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+  .b-blue{background:#dbeafe;color:#1d4ed8}
+  .b-green{background:#dcfce7;color:#15803d}
+  .b-orange{background:#ffedd5;color:#c2410c}
+  .b-red{background:#fee2e2;color:#dc2626}
+  .alert{padding:12px 16px;border-radius:8px;font-size:13px;margin:10px 0;line-height:1.6}
+  .alert-blue{background:#dbeafe;border:1px solid #93c5fd;color:#1e40af}
+  .alert-yellow{background:#fefce8;border:1px solid #fcd34d;color:#92400e}
+  .alert-green{background:#dcfce7;border:1px solid #86efac;color:#14532d}
+  ul{margin:8px 0 0 20px}
+  li{font-size:13px;color:#555;margin-bottom:4px;line-height:1.6}
+  .file-tree{background:#1e2440;color:#e2e8f0;padding:16px;border-radius:8px;font-family:Consolas,monospace;font-size:12.5px;line-height:1.8;margin:10px 0}
+  .file-tree .new{color:#22d3a0}
+  .divider{border:none;border-top:1px solid #e2e8f0;margin:24px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🤖 AI Attendance — How to Run</h1>
+  <p class="sub">Step-by-step guide to integrate and run the AI face-recognition attendance in your TAT College Portal</p>
+
+  <!-- Files changed -->
+  <div class="card">
+    <div class="card-hdr"><span>📁</span><h2>What's New in This Version (v3.0)</h2></div>
+    <div class="card-body">
+      <div class="file-tree">
+portal_fixed/
+├── server.js &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:#64748b"># ← AI routes added at bottom</span>
+├── package.json &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:#64748b"># ← jest added as devDependency</span>
+├── <span class="new">ai_attendance_migration.sql</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:#64748b"># ← NEW: run this in MySQL once</span>
+├── public/
+│   ├── admin_dashboard.html &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:#64748b"># ← "AI Attendance" nav link added</span>
+│   └── <span class="new">ai_attendance.html</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:#64748b"># ← NEW: main AI attendance page</span>
+└── test/
+    └── <span class="new">aiAttendance.test.js</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:#64748b"># ← NEW: 32 unit tests</span>
+      </div>
+      <div class="alert alert-blue" style="margin-top:10px">
+        ℹ️ All existing functionality is unchanged. This update only <strong>adds</strong> new files and new routes — nothing was deleted or modified in your existing flows.
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 1: MySQL migration -->
+  <div class="card">
+    <div class="card-hdr"><span>🗄️</span><h2>Step 1 — Run the Database Migration</h2></div>
+    <div class="card-body">
+      <div class="step">
+        <div class="num">1</div>
+        <div class="step-content">
+          <h3>Open MySQL command line (or MySQL Workbench)</h3>
+          <pre>mysql -u root -p college_portal &lt; ai_attendance_migration.sql</pre>
+          <p>Or paste the contents of <code>ai_attendance_migration.sql</code> directly into MySQL Workbench and run it.</p>
+          <p>This creates: <span class="badge b-green">ai_attendance_sessions table</span> <span class="badge b-blue">descriptor column in photos table</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Install deps -->
+  <div class="card">
+    <div class="card-hdr"><span>📦</span><h2>Step 2 — Install Dependencies</h2></div>
+    <div class="card-body">
+      <div class="step">
+        <div class="num">1</div>
+        <div class="step-content">
+          <h3>Open terminal in your project folder</h3>
+          <pre>cd portal_fixed</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <div class="step-content">
+          <h3>Install Jest (for unit tests only — optional)</h3>
+          <pre>npm install</pre>
+          <p>This installs everything in <code>package.json</code> including <code>jest</code>. The server itself needs no new npm packages — face-api.js loads from CDN in the browser.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Start server -->
+  <div class="card">
+    <div class="card-hdr"><span>🚀</span><h2>Step 3 — Start the Server</h2></div>
+    <div class="card-body">
+      <div class="step">
+        <div class="num">1</div>
+        <div class="step-content">
+          <h3>Start normally (same as before)</h3>
+          <pre>npm start
+<span class="cmt"># Output:
+# ✅ MySQL connected
+# 🚀 Portal → http://localhost:3000</span></pre>
+          <p>No changes to startup. All existing pages work identically.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4: Use AI attendance -->
+  <div class="card">
+    <div class="card-hdr"><span>🤖</span><h2>Step 4 — Use AI Attendance</h2></div>
+    <div class="card-body">
+      <div class="step">
+        <div class="num">1</div>
+        <div class="step-content">
+          <h3>Login as Admin</h3>
+          <p>Open <code>http://localhost:3000</code> → Login with Admin credentials (e.g. <code>ADMIN001 / admin123</code>)</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <div class="step-content">
+          <h3>Go to AI Attendance</h3>
+          <p>In the Admin sidebar, click <strong>"🤖 AI Attendance"</strong> — or open <code>http://localhost:3000/ai_attendance.html</code></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <div class="step-content">
+          <h3>Select Branch + Semester</h3>
+          <p>The system auto-detects today's active timetable slot. If no class is running right now, pick a slot manually from the dropdown.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">4</div>
+        <div class="step-content">
+          <h3>Click "Start AI Session" → Load Models</h3>
+          <p>Click <strong>"⬇ Load Models & Student Data"</strong>. face-api.js (~6MB) loads from CDN. Requires internet on first load, cached after. Then student face descriptors load from your DB.</p>
+          <div class="alert alert-yellow">⚠️ Students need at least 3–5 photos registered (via existing registration flow) for reliable recognition. Descriptors are auto-computed when photos are uploaded.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">5</div>
+        <div class="step-content">
+          <h3>Start Camera → Capture Start → Capture End</h3>
+          <p>Allow camera access in browser. Point at classroom. Click <strong>"📸 Capture Start"</strong> at class beginning, <strong>"📸 Capture End"</strong> at class end.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">6</div>
+        <div class="step-content">
+          <h3>Finalize & Save</h3>
+          <p>Review the present/absent list. Click <strong>"💾 Finalize & Save to DB"</strong>. Attendance is written to the <code>attendance</code> table exactly as the existing faculty manual process does — students and faculty dashboards update automatically.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5: Run tests -->
+  <div class="card">
+    <div class="card-hdr"><span>🧪</span><h2>Step 5 — Run Unit Tests</h2></div>
+    <div class="card-body">
+      <div class="step">
+        <div class="num">1</div>
+        <div class="step-content">
+          <h3>Run all 32 unit tests</h3>
+          <pre>npm test
+
+<span class="cmt"># Expected output:
+# PASS  test/aiAttendance.test.js
+#   genSessionId
+#     ✓ generates ID matching pattern sess_[a-z0-9]{8}
+#     ✓ generates unique IDs
+#   parseSlot
+#     ✓ parses 8:00-8:55 correctly
+#   ... 32 tests total
+# 
+# Test Suites: 1 passed, 1 total
+# Tests:       32 passed, 32 total</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Troubleshooting -->
+  <div class="card">
+    <div class="card-hdr"><span>🔧</span><h2>Troubleshooting</h2></div>
+    <div class="card-body">
+      <div class="step">
+        <div class="num">!</div>
+        <div class="step-content">
+          <h3>"No students with face descriptors found"</h3>
+          <p>This happens because existing photos don't have descriptors yet. The descriptor is computed <em>in the browser</em> when a new photo is uploaded. For existing students, re-upload one photo via the student registration page — the system will compute and store the descriptor automatically.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">!</div>
+        <div class="step-content">
+          <h3>"No timetable slots found for today"</h3>
+          <p>Upload a timetable CSV first via <strong>Admin → Upload Timetable</strong>. Make sure the timetable has the correct <code>day_of_week</code> entries (Monday–Saturday) and the batch is marked Active.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">!</div>
+        <div class="step-content">
+          <h3>Models fail to load (network error)</h3>
+          <p>face-api.js model weights load from <code>cdn.jsdelivr.net</code>. Requires internet access. For offline use, download models to <code>public/models/</code> and change <code>MODEL_URL</code> in <code>ai_attendance.html</code> to <code>'/models/'</code>. Download from: <code>https://github.com/vladmandic/face-api/tree/master/model</code></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">!</div>
+        <div class="step-content">
+          <h3>Camera not working</h3>
+          <p>Browser requires <strong>HTTPS or localhost</strong> for camera access. Since you're running on <code>localhost:3000</code> this works. If deploying to a server, add HTTPS (use nginx + certbot).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">!</div>
+        <div class="step-content">
+          <h3>Low recognition accuracy</h3>
+          <ul>
+            <li>Register 5–7 photos per student from different angles (front, left, right, slight up/down)</li>
+            <li>Ensure good lighting in classroom</li>
+            <li>Lower the threshold in <code>ai_attendance.html</code>: change <code>0.55</code> to <code>0.6</code> (more lenient) or <code>0.5</code> (stricter)</li>
+            <li>For dark classrooms, increase brightness or add lighting</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New API routes -->
+  <div class="card">
+    <div class="card-hdr"><span>🔌</span><h2>New API Routes Added</h2></div>
+    <div class="card-body" style="padding:0">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="background:#f8faff">
+          <th style="padding:10px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#4a5568;border-bottom:2px solid #e2e8f0">Method + Route</th>
+          <th style="padding:10px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#4a5568;border-bottom:2px solid #e2e8f0">Purpose</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f2f8"><code>POST /api/ai-attendance/start</code></td><td style="padding:10px 16px;border-bottom:1px solid #f0f2f8;color:#555">Start a new session, auto-detects active timetable slot</td></tr>
+          <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f2f8"><code>POST /api/ai-attendance/save-capture</code></td><td style="padding:10px 16px;border-bottom:1px solid #f0f2f8;color:#555">Save start or end capture recognized IDs</td></tr>
+          <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f2f8"><code>POST /api/ai-attendance/finalize</code></td><td style="padding:10px 16px;border-bottom:1px solid #f0f2f8;color:#555">Write final present/absent to attendance table</td></tr>
+          <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f2f8"><code>GET /api/ai-attendance/sessions</code></td><td style="padding:10px 16px;border-bottom:1px solid #f0f2f8;color:#555">List today's sessions with status</td></tr>
+          <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f2f8"><code>GET /api/ai-attendance/slots</code></td><td style="padding:10px 16px;border-bottom:1px solid #f0f2f8;color:#555">Get today's timetable slots for a branch/semester</td></tr>
+          <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f2f8"><code>GET /api/ai-attendance/students-with-descriptors</code></td><td style="padding:10px 16px;border-bottom:1px solid #f0f2f8;color:#555">Returns students + face descriptors for matching</td></tr>
+          <tr><td style="padding:10px 16px"><code>POST /api/ai-attendance/store-descriptor</code></td><td style="padding:10px 16px;color:#555">Stores computed face descriptor for a photo</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:20px;color:#888;font-size:12px">
+    TAT College Portal v3.0 · AI Attendance Integration · face-api.js + Node.js + MySQL
+  </div>
+</div>
+</body>
+</html>

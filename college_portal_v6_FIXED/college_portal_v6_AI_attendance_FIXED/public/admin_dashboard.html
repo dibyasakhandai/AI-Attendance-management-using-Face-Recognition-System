@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>TAT — Admin Panel</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f8;min-height:100vh;display:flex}
+
+    /* ── Sidebar ── */
+    .sidebar{width:220px;min-height:100vh;background:#1e2440;display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100}
+    .sidebar-brand{padding:18px 16px 14px;border-bottom:1px solid #2d3560}
+    .brand-logo{width:42px;height:42px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#1e2440;font-size:13px;margin-bottom:10px}
+    .brand-name{font-size:13px;font-weight:700;color:#fff;line-height:1.4}
+    .brand-sub{font-size:10px;color:#8892b0;margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+    .sidebar-section{padding:14px 12px 4px;font-size:10px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:.8px}
+    .sidebar-nav{flex:1;overflow-y:auto;padding-bottom:16px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;color:#8892b0;cursor:pointer;border-left:3px solid transparent;transition:.15s}
+    .nav-item:hover{background:#262d4a;color:#fff}
+    .nav-item.active{background:#1a3a6e;color:#fff;border-left-color:#4a90e2}
+    .nav-item .nav-icon{width:20px;text-align:center;font-size:15px}
+    .sidebar-user{padding:12px 14px;border-top:1px solid #2d3560;display:flex;align-items:center;gap:10px}
+    .user-avatar{width:34px;height:34px;background:#4a90e2;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;flex-shrink:0}
+    .user-info{flex:1;min-width:0}
+    .user-name{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .user-role{font-size:10px;color:#8892b0}
+    .user-logout{color:#ff6b6b;cursor:pointer;font-size:18px;padding:2px 4px}
+    .user-logout:hover{color:#ff4444}
+
+    /* ── Main ── */
+    .main{margin-left:220px;flex:1;min-height:100vh}
+    .page-header{padding:22px 28px 0}
+    .page-title{font-size:22px;font-weight:700;color:#1e2440}
+    .page-sub{font-size:13px;color:#666;margin-top:3px}
+    .page-content{padding:18px 28px 36px}
+
+    /* ── Cards ── */
+    .card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:18px;overflow:hidden}
+    .card-header{padding:13px 18px;border-bottom:1px solid #eef1f7;display:flex;align-items:center;justify-content:space-between}
+    .card-header-title{font-size:13px;font-weight:700;color:#1e2440;display:flex;align-items:center;gap:6px}
+    .card-body{padding:18px}
+
+    /* ── Stats ── */
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+    .stat-card{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;align-items:center;gap:14px}
+    .stat-icon{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+    .si-blue{background:#dbeafe} .si-green{background:#dcfce7} .si-purple{background:#ede9fe}
+    .stat-val{font-size:28px;font-weight:800;color:#1e2440;line-height:1}
+    .stat-lbl{font-size:11px;color:#666;margin-top:3px;text-transform:uppercase;letter-spacing:.3px}
+
+    /* ── Forms ── */
+    label{display:block;font-size:11px;font-weight:700;color:#4a5568;margin-bottom:4px;margin-top:10px;text-transform:uppercase;letter-spacing:.3px}
+    input,select{width:100%;padding:8px 11px;border:1px solid #d0d8ef;border-radius:6px;font-size:13px;outline:none;background:#fff}
+    input:focus,select:focus{border-color:#4a90e2;box-shadow:0 0 0 3px rgba(74,144,226,.12)}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form-row-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+
+    /* ── Buttons ── */
+    .btn{padding:8px 18px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+    .btn-primary{background:#1e2440;color:#fff}.btn-primary:hover{background:#2d3560}
+    .btn-blue{background:#4a90e2;color:#fff}.btn-blue:hover{background:#357abd}
+    .btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#dc2626}
+    .btn-success{background:#16a34a;color:#fff}.btn-success:hover{background:#15803d}
+    .btn-secondary{background:#f0f2f8;color:#4a5568;border:1px solid #d0d8ef}.btn-secondary:hover{background:#e2e8f0}
+    .btn-sm{padding:4px 10px;font-size:11px;border-radius:4px}
+    .btn-icon{background:none;border:1px solid #d0d8ef;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;color:#666}
+    .btn-icon:hover{background:#f0f2f8}
+
+    /* ── Tables ── */
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    th{background:#f8faff;color:#4a5568;padding:8px 11px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #e2e8f0}
+    td{padding:8px 11px;border-bottom:1px solid #f0f2f8}
+    tr:hover td{background:#fafbff}
+    tr:last-child td{border-bottom:none}
+
+    /* ── Badges ── */
+    .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
+    .badge-blue{background:#dbeafe;color:#1d4ed8}
+    .badge-green{background:#dcfce7;color:#15803d}
+    .badge-orange{background:#ffedd5;color:#c2410c}
+    .badge-red{background:#fee2e2;color:#dc2626}
+
+    /* ── Messages ── */
+    .msg{padding:10px 14px;border-radius:6px;font-size:13px;margin:8px 0;display:none}
+    .msg.success{background:#dcfce7;color:#15803d;display:block;border:1px solid #bbf7d0}
+    .msg.error{background:#fee2e2;color:#dc2626;display:block;border:1px solid #fecaca}
+
+    /* ── Upload ── */
+    .file-drop{border:2px dashed #c8d0e0;border-radius:8px;padding:34px;text-align:center;cursor:pointer;transition:.2s;margin-top:12px}
+    .file-drop:hover,.file-drop.drag-over{border-color:#4a90e2;background:#f0f6ff}
+    .upload-icon{font-size:44px;margin-bottom:10px}
+    .hint-box{background:#fffbea;border:1px solid #fcd34d;border-radius:6px;padding:11px 14px;font-size:12.5px;margin-bottom:14px;line-height:1.6}
+    .hint-box strong{color:#92400e}
+
+    /* ── View timetable ── */
+    .filter-bar{background:#f8faff;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;margin-bottom:16px}
+    .filter-title{font-size:13px;font-weight:700;color:#1e2440;margin-bottom:10px}
+    .day-block{margin-bottom:20px}
+    .day-header{font-weight:700;color:#1e2440;padding:8px 12px;background:#f0f6ff;border-radius:6px;margin-bottom:0;font-size:13px;border-left:3px solid #4a90e2}
+
+    /* ── Sections ── */
+    .section{display:none}.section.active{display:block}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">TAT</div>
+    <div class="brand-name">Trident Academy<br>of Technology</div>
+    <div class="brand-sub">Admin Panel v3.1</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="sidebar-section">Main</div>
+    <div class="nav-item active" id="nav-overview" onclick="showPage('overview',this)">
+      <span class="nav-icon">🏠</span> Overview
+    </div>
+    <div class="sidebar-section">Timetable</div>
+    <div class="nav-item" id="nav-upload-timetable" onclick="showPage('upload-timetable',this)">
+      <span class="nav-icon">📤</span> Upload Timetable
+    </div>
+    <div class="nav-item" id="nav-view-timetable" onclick="showPage('view-timetable',this)">
+      <span class="nav-icon">📅</span> View Timetable
+    </div>
+    <div class="sidebar-section">Attendance</div>
+    <div class="nav-item" onclick="location.href='ai_attendance.html'">
+      <span class="nav-icon">🤖</span> AI Attendance
+    </div>
+    <div class="sidebar-section">Students</div>
+    <div class="nav-item" id="nav-students" onclick="showPage('students',this)">
+      <span class="nav-icon">🎓</span> Student Faces
+    </div>
+    <div class="sidebar-section">Faculty</div>
+    <div class="nav-item" id="nav-faculty" onclick="showPage('faculty',this)">
+      <span class="nav-icon">👩‍🏫</span> Faculty Mapping
+    </div>
+    <div class="nav-item" id="nav-users" onclick="showPage('users',this)">
+      <span class="nav-icon">🔑</span> Login Accounts
+    </div>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar" id="user-avatar">A</div>
+    <div class="user-info">
+      <div class="user-name" id="user-name">Administrator</div>
+      <div class="user-role" id="user-role-label">ADMIN · TAT</div>
+    </div>
+    <div class="user-logout" onclick="logout()" title="Logout">⏻</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- OVERVIEW -->
+  <div class="section active" id="sec-overview">
+    <div class="page-header">
+      <div class="page-title">Overview</div>
+      <div class="page-sub">Welcome to the TAT Admin Panel</div>
+    </div>
+    <div class="page-content">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-icon si-blue">🎓</div><div><div class="stat-val" id="st-students">—</div><div class="stat-lbl">Total Students</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-green">👩‍🏫</div><div><div class="stat-val" id="st-faculty">—</div><div class="stat-lbl">Faculty Mapped</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-purple">📅</div><div><div class="stat-val" id="st-batches">—</div><div class="stat-lbl">Timetable Batches</div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-header-title">📅 Timetable Batches</span>
+          <button class="btn-icon" onclick="loadOverview()">↻ Refresh</button>
+        </div>
+        <div class="card-body" style="padding:0">
+          <table><thead><tr><th>Batch Name</th><th>Type</th><th>Slots</th><th>Status</th><th></th></tr></thead>
+          <tbody id="overview-batches"><tr><td colspan="5" style="text-align:center;color:#888;padding:20px">Loading…</td></tr></tbody></table>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-blue" onclick="showPage('upload-timetable',document.getElementById('nav-upload-timetable'))">📤 Upload Timetable</button>
+        <button class="btn btn-secondary" onclick="showPage('faculty',document.getElementById('nav-faculty'))">👩‍🏫 Faculty Map</button>
+        <button class="btn btn-secondary" onclick="showPage('students',document.getElementById('nav-students'))">🎓 Student Faces</button>
+        <button class="btn btn-secondary" onclick="showPage('users',document.getElementById('nav-users'))">🔑 Login Accounts</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPLOAD TIMETABLE -->
+  <div class="section" id="sec-upload-timetable">
+    <div class="page-header">
+      <div class="page-title">Upload Timetable</div>
+      <div class="page-sub">Upload a CSV/Excel file — it auto-assigns to faculty based on shortcodes in your Faculty Map.</div>
+    </div>
+    <div class="page-content">
+      <div class="hint-box">
+        📌 <strong>How it works:</strong> Upload your timetable CSV → The system reads each row's faculty shortcode (e.g. LM, PSM)
+        → Automatically matches it against the Faculty Map → Faculty can immediately see their classes on login.
+        <strong>No batch setup needed!</strong>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:start">
+
+        <!-- Upload form -->
+        <div>
+          <div class="card">
+            <div class="card-header"><span class="card-header-title">📁 Upload Timetable File</span></div>
+            <div class="card-body">
+              <div id="msg-upload" class="msg"></div>
+              <div class="form-row">
+                <div><label>Academic Year</label><input id="upload-acad-year" value="2025-2026"/></div>
+                <div>
+                  <label>Semester Type</label>
+                  <select id="upload-sem-type">
+                    <option value="Odd">Odd Semester (1st, 3rd, 5th, 7th)</option>
+                    <option value="Even">Even Semester (2nd, 4th, 6th, 8th)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="file-drop" id="file-drop" onclick="document.getElementById('tt-file').click()">
+                <div class="upload-icon">📁</div>
+                <div style="font-weight:700;color:#1e2440;font-size:14px">Click or drag &amp; drop your timetable file</div>
+                <div style="font-size:12px;color:#888;margin-top:6px">CSV, Excel (.xlsx/.xls) or PDF · Max 10 MB</div>
+                <input type="file" id="tt-file" style="display:none" accept=".pdf,.xlsx,.xls,.csv" onchange="handleFileSelect(this)"/>
+              </div>
+              <div id="file-info" style="display:none;margin-top:10px;padding:10px;background:#f0f6ff;border-radius:6px;font-size:12px;border:1px solid #c7d8f0"></div>
+              <div style="margin-top:14px;display:flex;align-items:center;gap:12px">
+                <button class="btn btn-blue" onclick="uploadAndApply()">🚀 Upload &amp; Apply</button>
+                <span style="font-size:12px;color:#666">Faculty will see classes immediately after upload</span>
+              </div>
+              <div id="upload-preview" style="display:none;margin-top:16px">
+                <div style="font-size:11px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px">Preview (first 10 rows)</div>
+                <div id="upload-preview-table" style="overflow-x:auto"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Manual slot editor -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-header-title">+ Add Slot Manually</span>
+              <div style="display:flex;gap:8px">
+                <select id="editor-batch-sel" style="width:auto;font-size:12px;padding:5px 8px" onchange="loadEditorSlots()"><option value="">— batch —</option></select>
+                <select id="editor-day" style="width:auto;font-size:12px;padding:5px 8px" onchange="renderEditorSlots()">
+                  <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+                  <option>Thursday</option><option>Friday</option><option>Saturday</option>
+                </select>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="msg-editor" class="msg"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+                <div><label>Branch</label><input id="slot-branch" placeholder="CSE-A"/></div>
+                <div><label>Semester</label><input id="slot-sem" type="number" min="1" max="8" placeholder="1"/></div>
+                <div><label>Time Slot</label><input id="slot-time" placeholder="8:00-8:55"/></div>
+                <div><label>Subject</label><input id="slot-subj" placeholder="MATH-I"/></div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+                <div><label>Faculty Code</label><input id="slot-fac" placeholder="LM"/></div>
+                <div><label>Room No</label><input id="slot-room" placeholder="RN-1101"/></div>
+                <div><label>Is Lab?</label><select id="slot-lab"><option value="0">No</option><option value="1">Yes</option></select></div>
+                <div style="display:flex;align-items:flex-end;gap:6px">
+                  <button class="btn btn-success btn-sm" onclick="addSlot()" style="flex:1;padding:8px 6px">+ Add</button>
+                  <button class="btn btn-primary btn-sm" onclick="saveAllSlots()" style="flex:1;padding:8px 6px">💾 Save</button>
+                </div>
+              </div>
+              <table><thead><tr><th>Day</th><th>Time</th><th>Branch</th><th>Sem</th><th>Subject</th><th>Faculty</th><th>Room</th><th>Lab</th><th></th></tr></thead>
+              <tbody id="editor-slots"><tr><td colspan="9" style="text-align:center;color:#888;padding:14px">Select a batch above to load slots.</td></tr></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Batch list -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-header-title">📋 Timetable List</span>
+            <button class="btn-icon" onclick="loadBatches()">↻ Refresh</button>
+          </div>
+          <div id="batch-list-wrap" style="padding:0">
+            <table><thead><tr><th>Name</th><th>Slots</th><th>Active</th><th></th></tr></thead>
+            <tbody id="batch-list"><tr><td colspan="4" style="text-align:center;color:#888;padding:20px">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW TIMETABLE -->
+  <div class="section" id="sec-view-timetable">
+    <div class="page-header">
+      <div class="page-title">View Timetable</div>
+      <div class="page-sub">Browse the full timetable by section and day.</div>
+    </div>
+    <div class="page-content">
+      <div class="filter-bar">
+        <div class="filter-title">🔍 Filter</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:flex-end">
+          <div>
+            <label>Branch / Section</label>
+            <select id="view-branch" onchange="loadViewTimetable()">
+              <option value="">All Branches</option>
+              <option>CSE-A</option><option>CSE-B</option><option>CSE-C</option>
+              <option>CST-A</option><option>CST-B</option><option>CS-IT</option>
+              <option>CS(AI&amp;ML)</option><option>ETC</option><option>MECH</option><option>EEE</option><option>CIVIL</option>
+            </select>
+          </div>
+          <div>
+            <label>Semester</label>
+            <select id="view-semester" onchange="loadViewTimetable()">
+              <option value="">All</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+            </select>
+          </div>
+          <div>
+            <label>Faculty Code</label>
+            <input id="view-faculty-code" placeholder="e.g. LM" oninput="debounceViewFilter()" style="height:37px"/>
+          </div>
+          <div style="padding-top:24px">
+            <button class="btn btn-secondary" onclick="resetViewFilters()" style="height:37px">↺ Reset</button>
+          </div>
+        </div>
+      </div>
+      <div id="view-loading" style="text-align:center;padding:30px;color:#666;display:none">⏳ Loading timetable…</div>
+      <div id="view-table-wrap"></div>
+    </div>
+  </div>
+
+  <!-- FACULTY MAP -->
+  <div class="section" id="sec-faculty">
+    <div class="page-header">
+      <div class="page-title">Faculty Mapping</div>
+      <div class="page-sub">Map shortcodes (LM, PSM…) to full names and login accounts</div>
+    </div>
+    <div class="page-content">
+      
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><span class="card-header-title">📤 Bulk Import Faculty (CSV / TXT)</span></div>
+        <div class="card-body">
+          <div id="msg-bulk-faculty" class="msg"></div>
+          <p style="color:#888;font-size:13px;margin-bottom:12px">Upload a CSV or TXT file. Required columns: <b>shortcode, full_name</b>. Optional: department, email, designation, qualification, joining_date, specialization, password</p>
+          <p style="color:#888;font-size:12px;margin-bottom:12px">Example CSV line: <code>SNR, Dr. Sudhansu Ranjan Lenka, CSE, snr@tat.ac.in, Associate Professor</code></p>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <input type="file" id="bulk-faculty-file" accept=".csv,.txt" style="flex:1;min-width:200px"/>
+            <button class="btn btn-blue" onclick="bulkImportFaculty()">Import Faculty</button>
+          </div>
+          <div id="bulk-faculty-result" style="margin-top:12px;font-size:13px"></div>
+        </div>
+      </div>
+<div class="card">
+        <div class="card-header"><span class="card-header-title">Add / Edit Faculty</span></div>
+        <div class="card-body">
+          <div id="msg-faculty" class="msg"></div>
+          <div class="form-row">
+            <div><label>Shortcode</label><input id="fac-code" placeholder="e.g. LM"/></div>
+            <div><label>Full Name</label><input id="fac-name" placeholder="Dr. Laxmi Mishra"/></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:flex-end;margin-top:2px">
+            <div><label>Department</label><select id="fac-dept"><option>CSE</option><option>CST</option><option>IT</option><option>ECE</option><option>EEE</option><option>MECH</option><option>CIVIL</option><option>MATH</option><option>PHYSICS</option><option>ENGLISH</option></select></div>
+            <div><label>Email (optional)</label><input id="fac-email" placeholder="email@tat.ac.in"/></div>
+            <div><label>Link Faculty Login</label><select id="fac-user"><option value="">— none —</option></select></div>
+            <div><button class="btn btn-blue" onclick="saveFacultyMap()" style="margin-top:22px;width:100%">Save</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-header-title">Faculty List</span></div>
+        <div style="padding:0">
+          <table><thead><tr><th>Shortcode</th><th>Full Name</th><th>Dept</th><th>Email</th><th>Login</th><th>Action</th></tr></thead>
+          <tbody id="faculty-map-table"><tr><td colspan="6" style="text-align:center;color:#888;padding:20px">Loading…</td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USERS -->
+  <div class="section" id="sec-users">
+    <div class="page-header">
+      <div class="page-title">Login Accounts</div>
+      <div class="page-sub">Manage faculty and admin login credentials</div>
+    </div>
+    <div class="page-content">
+      <div class="card">
+        <div class="card-header"><span class="card-header-title">Create Account</span></div>
+        <div class="card-body">
+          <div id="msg-users" class="msg"></div>
+          <div class="form-row">
+            <div><label>User ID</label><input id="u-id" placeholder="e.g. FAC002"/></div>
+            <div><label>Full Name</label><input id="u-name" placeholder="Full Name"/></div>
+          </div>
+          <div class="form-row" style="margin-top:2px">
+            <div><label>Password</label><input id="u-pwd" type="password" placeholder="Password"/></div>
+            <div><label>Role</label><select id="u-role"><option value="Faculty">Faculty</option><option value="Admin">Admin</option></select></div>
+          </div>
+          <div style="margin-top:2px"><label>Email (optional)</label><input id="u-email" placeholder="email@tat.ac.in"/></div>
+          <button class="btn btn-blue" style="margin-top:14px" onclick="createUser()">+ Create User</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-header-title">All Accounts</span></div>
+        <div style="padding:0">
+          <table><thead><tr><th>User ID</th><th>Name</th><th>Role</th><th>Email</th><th>Created</th><th>Action</th></tr></thead>
+          <tbody id="users-table"><tr><td colspan="6" style="text-align:center;color:#888;padding:20px">Loading…</td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="sec-students">
+    <div class="page-header">
+      <div class="page-title">Student Face Registration</div>
+      <div class="page-sub">Monitor photo enrollment status and manage face recognition database</div>
+    </div>
+    <div class="page-content">
+
+      <!-- Summary bar -->
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+        <div class="stat-card" style="flex:1;min-width:140px">
+          <div class="stat-icon si-blue">🎓</div>
+          <div><div class="stat-val" id="stu-total">—</div><div class="stat-lbl">Total Students</div></div>
+        </div>
+        <div class="stat-card" style="flex:1;min-width:140px">
+          <div class="stat-icon si-green">📸</div>
+          <div><div class="stat-val" id="stu-enrolled">—</div><div class="stat-lbl">Photos Captured</div></div>
+        </div>
+        <div class="stat-card" style="flex:1;min-width:140px">
+          <div class="stat-icon si-red">⚠️</div>
+          <div><div class="stat-val" id="stu-missing">—</div><div class="stat-lbl">No Photos Yet</div></div>
+        </div>
+        <div class="stat-card" style="flex:1;min-width:140px">
+          <div class="stat-icon si-purple">🤖</div>
+          <div><div class="stat-val" id="stu-engine">—</div><div class="stat-lbl">Engine Enrolled</div></div>
+        </div>
+      </div>
+
+      <!-- Face Engine Control -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><span class="card-header-title">🤖 Face Recognition Engine</span></div>
+        <div class="card-body" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <div id="engine-status-badge" style="padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;background:#fef3c7;color:#92400e">Checking…</div>
+          <button class="btn btn-blue" onclick="reloadFaceEngine()" id="btn-reload-engine">🔄 Reload Face DB</button>
+          <span id="reload-msg" style="font-size:12px;color:#16a34a"></span>
+          <div style="margin-left:auto;font-size:12px;color:#64748b">
+            Run <code style="background:#1e293b;color:#f8fafc;padding:2px 6px;border-radius:4px">start_face_engine.bat</code> first if not connected
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter -->
+      <div class="card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+          <span class="card-header-title">All Students — Photo Status</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="filter-branch" onchange="filterStudents()" style="padding:5px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px">
+              <option value="">All Branches</option>
+            </select>
+            <select id="filter-sem" onchange="filterStudents()" style="padding:5px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px">
+              <option value="">All Semesters</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+            </select>
+            <select id="filter-status" onchange="filterStudents()" style="padding:5px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px">
+              <option value="">All Status</option>
+              <option value="enrolled">Has Photos</option>
+              <option value="missing">No Photos</option>
+            </select>
+            <button class="btn btn-blue" style="padding:5px 12px;font-size:12px" onclick="loadStudentFaces()">🔄 Refresh</button>
+          </div>
+        </div>
+        <div style="padding:0">
+          <table id="students-face-table">
+            <thead><tr>
+              <th>Reg No</th><th>Name</th><th>Branch</th><th>Sem</th><th>Section</th>
+              <th style="text-align:center">Photos</th><th style="text-align:center">Status</th><th>Action</th>
+            </tr></thead>
+            <tbody id="students-face-tbody">
+              <tr><td colspan="8" style="text-align:center;color:#888;padding:24px">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+const API = 'http://localhost:3000/api';
+let currentUser = null;
+let batches = [];
+let pendingSlots = [];
+
+// ── Init ─────────────────────────────────────────────────────
+window.onload = async () => {
+  const stored = localStorage.getItem('user');
+  if(!stored){ location.href='index.html'; return; }
+  currentUser = JSON.parse(stored);
+  if(currentUser.role !== 'Admin'){ location.href='index.html'; return; }
+  const initials = (currentUser.name||'A').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-name').textContent = currentUser.name||'Administrator';
+  // Load overview + batches in parallel on startup; faculty/users load lazily
+  loadOverview();
+  loadBatches();
+};
+
+function logout(){ localStorage.removeItem('user'); location.href='index.html'; }
+
+// ── STUDENT FACES ─────────────────────────────────────────────
+let allStudentData = [];
+
+async function loadStudentFaces(){
+  if(_loaded['students'] && !event?.type) return; // don't reload on tab switch
+  _loaded['students'] = true;
+  document.getElementById('students-face-tbody').innerHTML =
+    '<tr><td colspan="8" style="text-align:center;color:#888;padding:24px">Loading…</td></tr>';
+
+  try{
+    const [stuRes, engRes] = await Promise.all([
+      fetch(`${API}/students`).then(r=>r.json()).catch(()=>[]),
+      fetch('/py/status').then(r=>r.json()).catch(()=>({ok:false}))
+    ]);
+
+    const students = Array.isArray(stuRes) ? stuRes : (stuRes.students||[]);
+    allStudentData = students;
+
+    const total    = students.length;
+    const enrolled = students.filter(s=>(s.photo_count||0)>=10).length;
+    const missing  = students.filter(s=>(s.photo_count||0)<10).length;
+
+    document.getElementById('stu-total').textContent    = total;
+    document.getElementById('stu-enrolled').textContent = enrolled;
+    document.getElementById('stu-missing').textContent  = missing;
+    document.getElementById('stu-engine').textContent   = engRes.enrolled ?? '—';
+
+    const badge = document.getElementById('engine-status-badge');
+    if(engRes.ok){
+      badge.textContent = '✅ Connected — ' + (engRes.enrolled||0) + ' students loaded';
+      badge.style.background = '#dcfce7'; badge.style.color = '#15803d';
+    } else {
+      badge.textContent = '❌ Not running';
+      badge.style.background = '#fee2e2'; badge.style.color = '#dc2626';
+    }
+
+    // Populate branch filter
+    const branches = [...new Set(students.map(s=>s.branch||s.section||'').filter(Boolean))].sort();
+    const branchSel = document.getElementById('filter-branch');
+    branchSel.innerHTML = '<option value="">All Branches</option>' +
+      branches.map(b=>`<option>${b}</option>`).join('');
+
+    renderStudentTable(students);
+  }catch(e){
+    document.getElementById('students-face-tbody').innerHTML =
+      `<tr><td colspan="8" style="color:#dc2626;padding:20px">Error: ${e.message}</td></tr>`;
+  }
+}
+
+function filterStudents(){
+  const branch = document.getElementById('filter-branch').value;
+  const sem    = document.getElementById('filter-sem').value;
+  const status = document.getElementById('filter-status').value;
+  let filtered = allStudentData;
+  if(branch) filtered = filtered.filter(s=>(s.branch||s.section||'')==branch);
+  if(sem)    filtered = filtered.filter(s=>String(s.semester)==sem);
+  if(status==='enrolled') filtered = filtered.filter(s=>(s.photo_count||0)>=10);
+  if(status==='missing')  filtered = filtered.filter(s=>(s.photo_count||0)<10);
+  renderStudentTable(filtered);
+}
+
+function renderStudentTable(students){
+  if(!students.length){
+    document.getElementById('students-face-tbody').innerHTML =
+      '<tr><td colspan="8" style="text-align:center;color:#888;padding:24px">No students match this filter.</td></tr>';
+    return;
+  }
+  // Sort: missing photos first, then by name
+  const sorted = [...students].sort((a,b)=>{
+    const ap = a.photo_count||0, bp = b.photo_count||0;
+    if(ap<10 && bp>=10) return -1;
+    if(ap>=10 && bp<10) return 1;
+    return (a.full_name||'').localeCompare(b.full_name||'');
+  });
+  document.getElementById('students-face-tbody').innerHTML = sorted.map(s=>{
+    const photos = s.photo_count||0;
+    const ok = photos >= 10;
+    const pct = Math.min(100, Math.round(photos/50*100));
+    const barColor = ok ? '#22c55e' : photos>0 ? '#f59e0b' : '#ef4444';
+    return `<tr>
+      <td style="font-family:monospace;font-size:12px">${s.student_id}</td>
+      <td style="font-weight:600">${s.full_name||'—'}</td>
+      <td style="font-size:12px">${s.branch||'—'}</td>
+      <td style="text-align:center">${s.semester||'—'}</td>
+      <td style="font-size:12px">${s.section||'—'}</td>
+      <td style="text-align:center">
+        <div style="font-size:12px;font-weight:600;color:${barColor};margin-bottom:3px">${photos}/50</div>
+        <div style="background:#e2e8f0;border-radius:4px;height:5px;width:80px;margin:0 auto">
+          <div style="background:${barColor};height:5px;border-radius:4px;width:${pct}%"></div>
+        </div>
+      </td>
+      <td style="text-align:center">
+        <span style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;
+          background:${ok?'#dcfce7':photos>0?'#fef3c7':'#fee2e2'};
+          color:${ok?'#15803d':photos>0?'#92400e':'#dc2626'}">
+          ${ok?'✅ Enrolled':photos>0?'⚠️ Partial':'❌ No Photos'}
+        </span>
+      </td>
+      <td>
+        <a href="register.html" target="_blank"
+           style="font-size:12px;color:#3b82f6;text-decoration:none;
+                  padding:3px 10px;border:1px solid #3b82f6;border-radius:6px">
+          ${ok?'Re-capture':'📸 Capture'}
+        </a>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function reloadFaceEngine(){
+  const btn = document.getElementById('btn-reload-engine');
+  const msg = document.getElementById('reload-msg');
+  btn.disabled = true; btn.textContent = '⏳ Reloading…';
+  msg.textContent = '';
+  try{
+    const res = await fetch('/py/reload', {method:'POST'});
+    const data = await res.json();
+    if(data.ok || data.message){
+      msg.textContent = '✅ Face DB rebuild triggered — takes ~10 seconds';
+      setTimeout(()=>{ msg.textContent=''; loadStudentFaces(); }, 12000);
+    } else {
+      msg.style.color='#dc2626'; msg.textContent = '❌ ' + (data.error||'Reload failed');
+    }
+  }catch(e){
+    msg.style.color='#dc2626'; msg.textContent = '❌ Engine not running — start start_face_engine.bat first';
+  } finally {
+    btn.disabled=false; btn.textContent='🔄 Reload Face DB';
+  }
+}
+
+// Track which tabs have been loaded to avoid redundant fetches
+const _loaded = {};
+
+// ── Navigation ────────────────────────────────────────────────
+function showPage(name, el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(a=>a.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  // Lazy-load heavy tabs only when first visited
+  if(name==='faculty'  && !_loaded.faculty ){ _loaded.faculty=true;  loadFacultyMap(); }
+  if(name==='users'    && !_loaded.users   ){ _loaded.users=true;    loadUsers(); }
+  if(name==='students' && !_loaded.students){ _loaded.students=true; loadStudentFaces(); }
+  if(name==='view-timetable') loadViewTimetable();
+  if(name==='upload-timetable') populateBatchSelects();
+}
+
+function showMsg(id,msg,type){
+  const el=document.getElementById(id); if(!el) return;
+  el.textContent=msg; el.className='msg '+type;
+  if(type) setTimeout(()=>{ el.className='msg'; },4500);
+}
+
+// ── Overview ──────────────────────────────────────────────────
+async function loadOverview(){
+  try{
+    // Try fast counts endpoint first; fall back to full list if not available
+    const [countsRes, batchRes] = await Promise.all([
+      fetch(`${API}/stats/counts`).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch(`${API}/timetable/batches`).then(r=>r.json()).catch(()=>[])
+    ]);
+
+    // Populate student/faculty counts
+    if(countsRes && countsRes.students != null){
+      document.getElementById('st-students').textContent = countsRes.students;
+      document.getElementById('st-faculty').textContent  = countsRes.faculty;
+    } else {
+      // Fallback: fetch full lists just for count
+      const [s,f] = await Promise.all([
+        fetch(`${API}/students`).then(r=>r.json()).catch(()=>[]),
+        fetch(`${API}/faculty-map`).then(r=>r.json()).catch(()=>[])
+      ]);
+      document.getElementById('st-students').textContent = Array.isArray(s) ? s.length : '—';
+      document.getElementById('st-faculty').textContent  = Array.isArray(f) ? f.length : '—';
+    }
+
+    const b = Array.isArray(batchRes) ? batchRes : [];
+    document.getElementById('st-batches').textContent = b.length;
+
+    const tbody = document.getElementById('overview-batches');
+    if(!b.length){
+      tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#888;padding:20px">No timetable batches yet. Upload one to get started.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = b.map(bt=>`<tr>
+      <td><strong>${bt.batch_name}</strong></td>
+      <td><span class="badge badge-blue">${bt.sem_type||'—'}</span> · ${bt.academic_year||'—'}</td>
+      <td>${bt.slot_count||0} slots</td>
+      <td><span class="badge ${bt.is_active?'badge-green':'badge-red'}">${bt.is_active?'Active':'Inactive'}</span></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteBatch(${bt.id})">Delete</button></td>
+    </tr>`).join('');
+  }catch(e){
+    console.error('loadOverview error:', e);
+    document.getElementById('overview-batches').innerHTML =
+      '<tr><td colspan="5" style="text-align:center;color:#c00;padding:20px">⚠️ Failed to load. Check server is running.</td></tr>';
+  }
+}
+
+// ── Batches ───────────────────────────────────────────────────
+async function loadBatches(){
+  try{
+    const res=await fetch(`${API}/timetable/batches`); const data=res.ok?await res.json():[];
+    batches=Array.isArray(data)?data:[];
+    renderBatchTable(); populateBatchSelects();
+  }catch(e){}
+}
+
+function renderBatchTable(){
+  const tbody=document.getElementById('batch-list'); if(!tbody) return;
+  if(!batches.length){ tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:#888;padding:20px">No batches yet.</td></tr>'; return; }
+  tbody.innerHTML=batches.map(b=>`<tr>
+    <td><strong>${b.batch_name}</strong><br><span style="font-size:10px;color:#888">${b.sem_type} · ${b.academic_year}</span></td>
+    <td>${b.slot_count||0} slots</td>
+    <td><label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;margin:0">
+      <input type="checkbox" ${b.is_active?'checked':''} onchange="toggleBatch(${b.id},this.checked)">
+      <span class="badge ${b.is_active?'badge-green':'badge-red'}">${b.is_active?'Active':'Inactive'}</span>
+    </label></td>
+    <td><button class="btn btn-danger btn-sm" onclick="deleteBatch(${b.id})">🗑</button></td>
+  </tr>`).join('');
+}
+
+function populateBatchSelects(){
+  const sel=document.getElementById('editor-batch-sel'); if(!sel) return;
+  sel.innerHTML='<option value="">— select batch —</option>'+batches.map(b=>`<option value="${b.id}">${b.batch_name}</option>`).join('');
+}
+
+async function deleteBatch(id){
+  if(!confirm('Delete this batch and ALL its slots?')) return;
+  await fetch(`${API}/timetable/batches/${id}`,{method:'DELETE'});
+  await loadBatches(); await loadOverview();
+}
+
+async function toggleBatch(id,active){
+  await fetch(`${API}/timetable/batches/${id}/active`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({isActive:active})});
+  await loadBatches();
+}
+
+// ── File drop ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  const dz=document.getElementById('file-drop'); if(!dz) return;
+  ['dragover','dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();ev.stopPropagation();}));
+  dz.addEventListener('dragover',()=>dz.classList.add('drag-over'));
+  dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+  dz.addEventListener('drop',e=>{
+    dz.classList.remove('drag-over');
+    const f=e.dataTransfer.files[0];
+    if(f){document.getElementById('tt-file').files=e.dataTransfer.files;handleFileSelect(document.getElementById('tt-file'));}
+  });
+});
+
+function handleFileSelect(input){
+  const f=input.files[0]; if(!f) return;
+  const info=document.getElementById('file-info');
+  info.style.display='block';
+  info.innerHTML=`📄 <strong>${f.name}</strong> &nbsp;|&nbsp; ${(f.size/1024).toFixed(1)} KB &nbsp;|&nbsp; ${f.type||'unknown'}`;
+}
+
+// ── CSV parsing ───────────────────────────────────────────────
+function parseCSVText(text){
+  const lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/\s+/g,'_'));
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const line=lines[i].trim(); if(!line) continue;
+    const vals=line.split(',');
+    const obj={};
+    headers.forEach((h,idx)=>{ obj[h]=(vals[idx]||'').trim(); });
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function csvRowToSlot(row){
+  const semester=parseInt(row.semester||row.sem||'0');
+  const dayOfWeek=row.day||row.day_of_week||'';
+  const branch=row.section||row.branch||'';
+  const timeSlot=row.time_slot||row.timeslot||row.time||'';
+  const subjectShort=row.subject||row.subject_short||row.subj||'';
+  const facultyCode=(row.faculty_code||row.faculty||'').toUpperCase();
+  const roomNo=row.room_no||row.room||'';
+  const isLab=/lab/i.test(subjectShort)||row.is_lab==='1';
+  if(!timeSlot||!dayOfWeek||!branch||!semester) return null;
+  if(/^break$/i.test(subjectShort)&&!facultyCode) return null;
+  return {semester,dayOfWeek,branch,timeSlot,subjectShort:subjectShort||null,subjectFull:null,
+          facultyCode:facultyCode||null,roomNo:roomNo||null,isLab,notes:null};
+}
+
+// ── Upload & Apply ────────────────────────────────────────────
+async function uploadAndApply(){
+  const file=document.getElementById('tt-file').files[0];
+  const acadYear=document.getElementById('upload-acad-year').value||'2025-2026';
+  const semType=document.getElementById('upload-sem-type').value||'Odd';
+  if(!file) return showMsg('msg-upload','Please select a file first','error');
+
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext!=='csv') return showMsg('msg-upload','Only CSV supported for auto-import. Please convert your Excel to CSV first.','error');
+
+  showMsg('msg-upload','⏳ Reading and parsing file…','');
+  try{
+    const text=await file.text();
+    const rows=parseCSVText(text);
+    const slots=rows.map(csvRowToSlot).filter(Boolean);
+
+    if(!slots.length) return showMsg('msg-upload',
+      '❌ No valid slots found. Expected columns: Semester, Day, Section, Time_Slot, Subject, Faculty_Code, Room_No','error');
+
+    // Preview
+    const previewDiv=document.getElementById('upload-preview');
+    const previewTable=document.getElementById('upload-preview-table');
+    const preview=slots.slice(0,10);
+    previewTable.innerHTML=`<table><thead><tr><th>Day</th><th>Branch</th><th>Sem</th><th>Time</th><th>Subject</th><th>Faculty</th><th>Room</th></tr></thead><tbody>
+      ${preview.map(s=>`<tr><td>${s.dayOfWeek}</td><td>${s.branch}</td><td>${s.semester}</td><td>${s.timeSlot}</td><td>${s.subjectShort||'—'}</td><td>${s.facultyCode||'—'}</td><td>${s.roomNo||'—'}</td></tr>`).join('')}
+      ${slots.length>10?`<tr><td colspan="7" style="color:#888;text-align:center;padding:8px">…and ${slots.length-10} more rows</td></tr>`:''}
+    </tbody></table>`;
+    previewDiv.style.display='block';
+
+    showMsg('msg-upload',`⏳ Found ${slots.length} slots. Creating batch…`,'');
+
+    // Auto-create batch
+    const batchName=`${semType} ${acadYear}`;
+    const batchRes=await fetch(`${API}/timetable/batches`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({batchName,semType,academicYear:acadYear,uploadedBy:currentUser?.data?.user_id||'admin'})
+    }).then(r=>r.json());
+
+    if(!batchRes.success) return showMsg('msg-upload','❌ Failed to create batch: '+batchRes.message,'error');
+
+    // Save all slots
+    const bulkRes=await fetch(`${API}/timetable/slots/bulk`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({batchId:batchRes.batchId,slots})
+    }).then(r=>r.json());
+
+    if(bulkRes.success){
+      showMsg('msg-upload',`✅ ${bulkRes.inserted} slots uploaded! Batch "${batchName}" is now active. Faculty can see their classes immediately.`,'success');
+      await loadBatches();
+      await loadOverview();
+    } else {
+      showMsg('msg-upload','❌ Error saving slots: '+bulkRes.message,'error');
+    }
+  }catch(e){
+    showMsg('msg-upload','❌ Error: '+e.message,'error');
+  }
+}
+
+// ── Manual Slot Editor ────────────────────────────────────────
+async function loadEditorSlots(){
+  const batchId=document.getElementById('editor-batch-sel').value;
+  if(!batchId){ pendingSlots=[]; renderEditorSlots(); return; }
+  try{
+    const data=await fetch(`${API}/timetable/slots/${batchId}`).then(r=>r.json());
+    pendingSlots=Array.isArray(data)?data.map(s=>({...s,_saved:true})):[];
+    renderEditorSlots();
+  }catch(e){}
+}
+
+function renderEditorSlots(){
+  const day=document.getElementById('editor-day').value;
+  const tbody=document.getElementById('editor-slots');
+  const filtered=pendingSlots.filter(s=>(s.day_of_week||s.dayOfWeek)===day);
+  if(!filtered.length){ tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:#888;padding:14px">No slots for this day yet.</td></tr>'; return; }
+  tbody.innerHTML=filtered.map(s=>{
+    const idx=pendingSlots.indexOf(s);
+    return `<tr>
+      <td>${s.day_of_week||s.dayOfWeek}</td>
+      <td>${s.time_slot||s.timeSlot}</td>
+      <td>${s.branch}</td>
+      <td>${s.semester}</td>
+      <td><strong>${s.subject_short||s.subjectShort||'—'}</strong></td>
+      <td>${s.faculty_code||s.facultyCode||'—'}${s.faculty_name?`<br><span style="color:#666;font-size:10px">${s.faculty_name}</span>`:''}</td>
+      <td>${s.room_no||s.roomNo||'—'}</td>
+      <td>${(s.is_lab||s.isLab)?'✓':''}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeSlot(${idx})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function addSlot(){
+  const day=document.getElementById('editor-day').value;
+  const branch=document.getElementById('slot-branch').value.trim();
+  const sem=parseInt(document.getElementById('slot-sem').value)||0;
+  const time=document.getElementById('slot-time').value.trim();
+  const subj=document.getElementById('slot-subj').value.trim();
+  const fac=document.getElementById('slot-fac').value.trim().toUpperCase();
+  const room=document.getElementById('slot-room').value.trim();
+  const isLab=document.getElementById('slot-lab').value==='1';
+  if(!branch||!sem||!time) return showMsg('msg-editor','Branch, Semester and Time are required','error');
+  pendingSlots.push({dayOfWeek:day,branch,semester:sem,timeSlot:time,subjectShort:subj,facultyCode:fac,roomNo:room,isLab,_saved:false});
+  renderEditorSlots();
+  ['slot-branch','slot-time','slot-subj','slot-fac','slot-room'].forEach(id=>document.getElementById(id).value='');
+}
+
+function removeSlot(idx){ pendingSlots.splice(idx,1); renderEditorSlots(); }
+
+async function saveAllSlots(){
+  const batchId=document.getElementById('editor-batch-sel').value;
+  if(!batchId) return showMsg('msg-editor','Select a batch first','error');
+  if(!pendingSlots.length) return showMsg('msg-editor','No slots to save','error');
+  const normalized=pendingSlots.map(s=>({
+    semester:s.semester,branch:s.branch,
+    dayOfWeek:s.day_of_week||s.dayOfWeek,
+    timeSlot:s.time_slot||s.timeSlot,
+    subjectShort:s.subject_short||s.subjectShort||null,
+    subjectFull:s.subject_full||s.subjectFull||null,
+    facultyCode:(s.faculty_code||s.facultyCode||'').toUpperCase()||null,
+    roomNo:s.room_no||s.roomNo||null,
+    isLab:!!(s.is_lab||s.isLab),notes:s.notes||null
+  }));
+  try{
+    const r=await fetch(`${API}/timetable/slots/bulk`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({batchId:parseInt(batchId),slots:normalized})}).then(r=>r.json());
+    if(r.success){ showMsg('msg-editor',`✅ ${r.inserted} slots saved!`,'success'); await loadBatches(); await loadOverview(); }
+    else showMsg('msg-editor',r.message||'Error saving','error');
+  }catch(e){ showMsg('msg-editor','Connection error','error'); }
+}
+
+// ── View Timetable ────────────────────────────────────────────
+let _viewTimer=null;
+function debounceViewFilter(){ clearTimeout(_viewTimer); _viewTimer=setTimeout(loadViewTimetable,400); }
+
+function resetViewFilters(){
+  document.getElementById('view-branch').value='';
+  document.getElementById('view-semester').value='';
+  document.getElementById('view-faculty-code').value='';
+  loadViewTimetable();
+}
+
+async function loadViewTimetable(){
+  const branch=(document.getElementById('view-branch')?.value||'').trim();
+  const semester=(document.getElementById('view-semester')?.value||'').trim();
+  const facultyCode=(document.getElementById('view-faculty-code')?.value||'').trim().toUpperCase();
+
+  const wrap=document.getElementById('view-table-wrap');
+  const loader=document.getElementById('view-loading');
+  if(loader) loader.style.display='block';
+  if(wrap) wrap.innerHTML='';
+
+  try{
+    const allBatches=await fetch(`${API}/timetable/batches`).then(r=>r.json());
+    if(!allBatches||!allBatches.length){
+      if(loader) loader.style.display='none';
+      wrap.innerHTML='<div style="text-align:center;padding:50px;color:#888"><div style="font-size:48px;margin-bottom:12px">📅</div><div style="font-size:15px;font-weight:600">No timetable found</div><div style="font-size:13px;margin-top:6px">Please upload a timetable first.</div></div>';
+      return;
+    }
+    const activeBatch=allBatches.find(b=>b.is_active)||allBatches[0];
+
+    let url=`${API}/timetable/slots/${activeBatch.id}`;
+    const params=[];
+    if(branch) params.push(`branch=${encodeURIComponent(branch)}`);
+    if(semester) params.push(`semester=${encodeURIComponent(semester)}`);
+    if(params.length) url+='?'+params.join('&');
+
+    const data=await fetch(url).then(r=>r.json());
+    if(loader) loader.style.display='none';
+
+    let slots=Array.isArray(data)?data:[];
+    if(facultyCode) slots=slots.filter(s=>(s.faculty_code||'').toUpperCase().includes(facultyCode));
+
+    if(!slots.length){
+      wrap.innerHTML='<div style="text-align:center;padding:40px;color:#888"><div style="font-size:36px;margin-bottom:10px">🔍</div><div>No slots match the selected filters.</div></div>';
+      return;
+    }
+
+    const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const byDay={};
+    slots.forEach(s=>{ const d=s.day_of_week; if(!byDay[d]) byDay[d]=[]; byDay[d].push(s); });
+
+    let html=`<div style="margin-bottom:14px;font-size:12px;color:#666;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <strong>${slots.length} slots shown</strong>
+      <span style="color:#ccc">|</span>
+      Batch: <strong>${activeBatch.batch_name}</strong>
+      <span class="badge badge-green">${activeBatch.sem_type} · ${activeBatch.academic_year}</span>
+    </div>`;
+
+    days.forEach(day=>{
+      if(!byDay[day]) return;
+      const daySlots=byDay[day].sort((a,b)=>a.time_slot.localeCompare(b.time_slot));
+      html+=`<div class="day-block">
+        <div class="day-header">📅 ${day} <span style="font-weight:400;font-size:12px;color:#4a6fa5;margin-left:6px">${daySlots.length} classes</span></div>
+        <div class="card" style="margin-top:8px;margin-bottom:0">
+          <table><thead><tr><th>Time</th><th>Branch</th><th>Sem</th><th>Subject</th><th>Faculty</th><th>Room</th></tr></thead><tbody>
+          ${daySlots.map(s=>`<tr>
+            <td style="font-weight:600;color:#1e2440;white-space:nowrap">${s.time_slot}</td>
+            <td><span class="badge badge-blue">${s.branch}</span></td>
+            <td>${s.semester}</td>
+            <td>${s.subject_short||'—'}${s.is_lab?'<span class="badge badge-orange" style="margin-left:5px">LAB</span>':''}</td>
+            <td>${s.faculty_code||'—'}${s.faculty_name?`<br><span style="font-size:10px;color:#666">${s.faculty_name}</span>`:''}</td>
+            <td>${s.room_no||'—'}</td>
+          </tr>`).join('')}
+          </tbody></table>
+        </div>
+      </div>`;
+    });
+    wrap.innerHTML=html;
+  }catch(e){
+    if(loader) loader.style.display='none';
+    if(wrap) wrap.innerHTML=`<p style="color:#dc2626;padding:20px">Error loading timetable: ${e.message}</p>`;
+  }
+}
+
+// ── Faculty Map ───────────────────────────────────────────────
+async function loadFacultyMap(){
+  try{
+    const data=await fetch(`${API}/faculty-map`).then(r=>r.json());
+    const tbody=document.getElementById('faculty-map-table');
+    if(!data.length){ tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#888;padding:20px">No faculty mapped yet.</td></tr>'; return; }
+    tbody.innerHTML=data.map(f=>`<tr>
+      <td><strong>${f.shortcode}</strong></td>
+      <td>${f.full_name}</td>
+      <td><span class="badge badge-blue">${f.department}</span></td>
+      <td>${f.email||'—'}</td>
+      <td>${f.user_id?`<span class="badge badge-green">${f.user_id}</span>`:'<span class="badge badge-red">Not linked</span>'}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="editFaculty('${f.shortcode}','${f.full_name}','${f.department}','${f.email||''}','${f.user_id||''}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteFaculty('${f.shortcode}')">Delete</button>
+      </td>
+    </tr>`).join('');
+  }catch(e){}
+}
+
+function editFaculty(code,name,dept,email,uid){
+  document.getElementById('fac-code').value=code;
+  document.getElementById('fac-name').value=name;
+  document.getElementById('fac-dept').value=dept;
+  document.getElementById('fac-email').value=email;
+  document.getElementById('fac-user').value=uid;
+  document.getElementById('nav-faculty').click();
+}
+
+async function saveFacultyMap(){
+  const shortcode=document.getElementById('fac-code').value.trim();
+  const fullName=document.getElementById('fac-name').value.trim();
+  const department=document.getElementById('fac-dept').value;
+  const email=document.getElementById('fac-email').value.trim();
+  const userId=document.getElementById('fac-user').value;
+  if(!shortcode||!fullName) return showMsg('msg-faculty','Shortcode and Full Name required','error');
+  try{
+    const r=await fetch(`${API}/faculty-map`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({shortcode,fullName,department,email,userId})}).then(r=>r.json());
+    if(r.success){
+      showMsg('msg-faculty','Faculty mapping saved!','success');
+      ['fac-code','fac-name','fac-email'].forEach(id=>document.getElementById(id).value='');
+      await loadFacultyMap();
+    } else showMsg('msg-faculty',r.message||'Error','error');
+  }catch(e){ showMsg('msg-faculty','Connection error','error'); }
+}
+
+async function deleteFaculty(code){
+  if(!confirm(`Delete mapping for ${code}?`)) return;
+  await fetch(`${API}/faculty-map/${code}`,{method:'DELETE'});
+  await loadFacultyMap();
+}
+
+// ── Users ─────────────────────────────────────────────────────
+async function loadUsers(){
+  try{
+    const data=await fetch(`${API}/users`).then(r=>r.json());
+    document.getElementById('users-table').innerHTML=data.map(u=>`<tr>
+      <td><strong>${u.user_id}</strong></td>
+      <td>${u.name}</td>
+      <td><span class="badge ${u.role==='Admin'?'badge-orange':'badge-blue'}">${u.role}</span></td>
+      <td>${u.email||'—'}</td>
+      <td>${new Date(u.created_at).toLocaleDateString('en-IN')}</td>
+      <td>${u.role!=='Admin'?`<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.user_id}')">Delete</button>`:'<span style="color:#aaa;font-size:11px">Protected</span>'}</td>
+    </tr>`).join('');
+    const facSel=document.getElementById('fac-user');
+    const facUsers=data.filter(u=>u.role==='Faculty');
+    facSel.innerHTML='<option value="">— none —</option>'+facUsers.map(u=>`<option value="${u.user_id}">${u.user_id} — ${u.name}</option>`).join('');
+  }catch(e){}
+}
+
+async function createUser(){
+  const userId=document.getElementById('u-id').value.trim();
+  const name=document.getElementById('u-name').value.trim();
+  const password=document.getElementById('u-pwd').value;
+  const role=document.getElementById('u-role').value;
+  const email=document.getElementById('u-email').value.trim();
+  if(!userId||!name||!password) return showMsg('msg-users','User ID, Name and Password required','error');
+  try{
+    const r=await fetch(`${API}/users`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({userId,password,role,name,email})}).then(r=>r.json());
+    if(r.success){
+      showMsg('msg-users','User created!','success');
+      ['u-id','u-name','u-pwd','u-email'].forEach(id=>document.getElementById(id).value='');
+      await loadUsers();
+    } else showMsg('msg-users',r.message||'Error','error');
+  }catch(e){ showMsg('msg-users','Connection error','error'); }
+}
+
+async function deleteUser(uid){
+  if(!confirm(`Delete user ${uid}?`)) return;
+  await fetch(`${API}/users/${uid}`,{method:'DELETE'});
+  await loadUsers();
+}
+
+// ── Bulk Faculty Import ───────────────────────────────────────
+async function bulkImportFaculty(){
+  const fileInput = document.getElementById('bulk-faculty-file');
+  const resultDiv = document.getElementById('bulk-faculty-result');
+  const msgDiv    = document.getElementById('msg-bulk-faculty');
+  if(!fileInput.files.length){ msgDiv.className='msg error'; msgDiv.textContent='Please select a CSV or TXT file.'; return; }
+  const file = fileInput.files[0];
+  const text = await file.text();
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l && !l.startsWith('#'));
+  if(!lines.length){ msgDiv.className='msg error'; msgDiv.textContent='File is empty.'; return; }
+
+  // Detect if first line is a header
+  const firstLower = lines[0].toLowerCase();
+  const hasHeader = firstLower.includes('shortcode') || firstLower.includes('name') || firstLower.includes('code');
+  const dataLines = hasHeader ? lines.slice(1) : lines;
+  const headers = hasHeader ? lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/ /g,'_')) : ['shortcode','full_name','department','email','designation','qualification','joining_date','nature_of_association','specialization','password'];
+
+  const rows = dataLines.map(line => {
+    const cols = line.split(',').map(c=>c.trim().replace(/^"+|"+$/g,''));
+    const obj = {};
+    headers.forEach((h,i)=>{ if(cols[i]) obj[h]=cols[i]; });
+    // Also support positional if no header
+    if(!hasHeader && cols.length >= 2){ obj.shortcode=cols[0]; obj.full_name=cols[1]; if(cols[2]) obj.department=cols[2]; if(cols[3]) obj.email=cols[3]; if(cols[4]) obj.designation=cols[4]; if(cols[5]) obj.qualification=cols[5]; }
+    return obj;
+  }).filter(r=>r.shortcode && r.full_name);
+
+  if(!rows.length){ msgDiv.className='msg error'; msgDiv.textContent='No valid rows found. Check your file format.'; return; }
+  
+  msgDiv.className='msg'; msgDiv.textContent='Importing '+rows.length+' faculty...';
+  resultDiv.textContent = '';
+  
+  try{
+    const res = await fetch(API+'/faculty/bulk-import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rows})});
+    const data = await res.json();
+    if(data.success){
+      msgDiv.className='msg success'; msgDiv.textContent='✅ '+data.message;
+      resultDiv.innerHTML = '<b>'+data.inserted+' new faculty added, '+data.updated+' updated.</b>'+(data.errors.length?'<br><span style="color:red">Errors: '+data.errors.join(', ')+'</span>':'');
+      loadFacultyMap();
+    } else {
+      msgDiv.className='msg error'; msgDiv.textContent='❌ '+data.message;
+    }
+  } catch(e){ msgDiv.className='msg error'; msgDiv.textContent='Error: '+e.message; }
+}
+
+</script>
+</body>
+</html>

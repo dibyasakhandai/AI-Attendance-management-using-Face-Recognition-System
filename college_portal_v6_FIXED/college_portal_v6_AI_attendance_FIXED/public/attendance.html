@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>TAT — AI Attendance</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f8;min-height:100vh;display:flex}
+
+    /* ── Sidebar (same as admin_dashboard) ── */
+    .sidebar{width:220px;min-height:100vh;background:#1e2440;display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100}
+    .sidebar-brand{padding:18px 16px 14px;border-bottom:1px solid #2d3560}
+    .brand-logo{width:42px;height:42px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#1e2440;font-size:13px;margin-bottom:10px}
+    .brand-name{font-size:13px;font-weight:700;color:#fff;line-height:1.4}
+    .brand-sub{font-size:10px;color:#8892b0;margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+    .sidebar-section{padding:14px 12px 4px;font-size:10px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:.8px}
+    .sidebar-nav{flex:1;overflow-y:auto;padding-bottom:16px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;color:#8892b0;cursor:pointer;border-left:3px solid transparent;transition:.15s;text-decoration:none}
+    .nav-item:hover{background:#262d4a;color:#fff}
+    .nav-item.active{background:#1a3a6e;color:#fff;border-left-color:#4a90e2}
+    .nav-item .nav-icon{width:20px;text-align:center;font-size:15px}
+    .sidebar-user{padding:12px 14px;border-top:1px solid #2d3560;display:flex;align-items:center;gap:10px}
+    .user-avatar{width:34px;height:34px;background:#4a90e2;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;flex-shrink:0}
+    .user-info{flex:1;min-width:0}
+    .user-name{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .user-role{font-size:10px;color:#8892b0}
+    .user-logout{color:#ff6b6b;cursor:pointer;font-size:18px;padding:2px 4px}
+    .user-logout:hover{color:#ff4444}
+
+    /* ── Main ── */
+    .main{margin-left:220px;flex:1;min-height:100vh}
+    .page-header{padding:22px 28px 0}
+    .page-title{font-size:22px;font-weight:700;color:#1e2440}
+    .page-sub{font-size:13px;color:#666;margin-top:3px}
+    .page-content{padding:18px 28px 36px}
+
+    /* ── Cards ── */
+    .card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:18px;overflow:hidden}
+    .card-header{padding:13px 18px;border-bottom:1px solid #eef1f7;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .card-header-title{font-size:13px;font-weight:700;color:#1e2440;display:flex;align-items:center;gap:6px}
+    .card-body{padding:18px}
+
+    /* ── Forms ── */
+    label{display:block;font-size:11px;font-weight:700;color:#4a5568;margin-bottom:4px;margin-top:10px;text-transform:uppercase;letter-spacing:.3px}
+    input,select{width:100%;padding:8px 11px;border:1px solid #d0d8ef;border-radius:6px;font-size:13px;outline:none;background:#fff}
+    input:focus,select:focus{border-color:#4a90e2;box-shadow:0 0 0 3px rgba(74,144,226,.12)}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+    /* ── Buttons ── */
+    .btn{padding:8px 18px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+    .btn-primary{background:#1e2440;color:#fff}.btn-primary:hover{background:#2d3560}
+    .btn-blue{background:#4a90e2;color:#fff}.btn-blue:hover{background:#357abd}
+    .btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#dc2626}
+    .btn-success{background:#16a34a;color:#fff}.btn-success:hover{background:#15803d}
+    .btn-orange{background:#ea580c;color:#fff}.btn-orange:hover{background:#c2410c}
+    .btn-secondary{background:#f0f2f8;color:#4a5568;border:1px solid #d0d8ef}.btn-secondary:hover{background:#e2e8f0}
+    .btn-sm{padding:5px 12px;font-size:12px}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+
+    /* ── Badges ── */
+    .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
+    .badge-blue{background:#dbeafe;color:#1d4ed8}
+    .badge-green{background:#dcfce7;color:#15803d}
+    .badge-orange{background:#ffedd5;color:#c2410c}
+    .badge-red{background:#fee2e2;color:#dc2626}
+    .badge-purple{background:#ede9fe;color:#6d28d9}
+
+    /* ── Messages ── */
+    .msg{padding:10px 14px;border-radius:6px;font-size:13px;margin:8px 0}
+    .msg-success{background:#dcfce7;color:#15803d;border:1px solid #bbf7d0}
+    .msg-error{background:#fee2e2;color:#dc2626;border:1px solid #fecaca}
+    .msg-info{background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe}
+    .msg-warn{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+
+    /* ── Camera area ── */
+    .cam-wrap{position:relative;background:#0f172a;border-radius:10px;overflow:hidden;aspect-ratio:16/10}
+    .cam-wrap video{width:100%;height:100%;object-fit:cover;display:block}
+    .cam-wrap canvas.overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+    .cam-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#64748b;gap:10px}
+    .cam-placeholder .icon{font-size:52px}
+    .cam-placeholder p{font-size:14px;font-weight:600}
+    .cam-placeholder small{font-size:12px;color:#4a5568}
+    .cam-log{background:#0f172a;color:#22d3a0;font-family:monospace;font-size:12px;padding:10px 14px;border-radius:0 0 8px 8px;max-height:80px;overflow-y:auto;line-height:1.6}
+
+    /* ── Capture button states ── */
+    .capture-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+
+    /* ── Face results table ── */
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    th{background:#f8faff;color:#4a5568;padding:8px 11px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #e2e8f0}
+    td{padding:8px 11px;border-bottom:1px solid #f0f2f8}
+    tr:hover td{background:#fafbff}
+    tr:last-child td{border-bottom:none}
+
+    /* ── Stats bar ── */
+    .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+    .stat-box{background:#fff;border-radius:10px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;align-items:center;gap:12px}
+    .stat-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    .si-blue{background:#dbeafe} .si-green{background:#dcfce7} .si-orange{background:#ffedd5} .si-red{background:#fee2e2}
+    .stat-val{font-size:24px;font-weight:800;color:#1e2440;line-height:1}
+    .stat-lbl{font-size:10px;color:#888;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+
+    /* ── Step indicator ── */
+    .steps-nav{display:flex;gap:0;margin-bottom:22px}
+    .step-dot{flex:1;text-align:center;position:relative;padding-bottom:14px}
+    .step-dot::before{content:'';position:absolute;top:14px;left:50%;right:-50%;height:2px;background:#e2e8f0;z-index:0}
+    .step-dot:last-child::before{display:none}
+    .step-circle{width:30px;height:30px;border-radius:50%;background:#e2e8f0;color:#888;font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;position:relative;z-index:1}
+    .step-dot.done .step-circle{background:#16a34a;color:#fff}
+    .step-dot.active .step-circle{background:#4a90e2;color:#fff;box-shadow:0 0 0 4px rgba(74,144,226,.2)}
+    .step-label{font-size:11px;color:#888;margin-top:6px;font-weight:600}
+    .step-dot.done .step-label,.step-dot.active .step-label{color:#1e2440}
+
+    /* ── Session list ── */
+    .session-item{padding:12px 16px;border-bottom:1px solid #f0f2f8;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .session-item:last-child{border-bottom:none}
+    .session-meta{flex:1}
+    .session-title{font-size:13px;font-weight:700;color:#1e2440}
+    .session-sub{font-size:11px;color:#888;margin-top:2px}
+
+    /* ── How it works box ── */
+    .how-box{background:#f0f6ff;border:1px solid #c7d8f0;border-radius:8px;padding:14px 16px;margin-bottom:18px}
+    .how-box h4{font-size:13px;font-weight:700;color:#1e2440;margin-bottom:8px}
+    .how-steps{display:flex;gap:10px;flex-wrap:wrap}
+    .how-step{background:#fff;border:1px solid #c7d8f0;border-radius:6px;padding:10px 14px;flex:1;min-width:160px;font-size:12px;color:#444;line-height:1.5}
+    .how-step strong{display:block;font-size:12px;color:#1e2440;margin-bottom:3px}
+
+    /* ── Progress bar ── */
+    .prog-bar{height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-top:6px}
+    .prog-fill{height:100%;border-radius:3px;transition:width .5s;background:#16a34a}
+
+    .spinner{display:inline-block;width:14px;height:14px;border:2px solid #e2e8f0;border-top-color:#4a90e2;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .hidden{display:none!important}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">TAT</div>
+    <div class="brand-name">Trident Academy<br>of Technology</div>
+    <div class="brand-sub">Admin Panel v3.1</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="sidebar-section">Main</div>
+    <a class="nav-item" href="admin_dashboard.html"><span class="nav-icon">🏠</span> Overview</a>
+    <div class="sidebar-section">Timetable</div>
+    <a class="nav-item" href="admin_dashboard.html"><span class="nav-icon">📤</span> Upload Timetable</a>
+    <a class="nav-item" href="admin_dashboard.html"><span class="nav-icon">📅</span> View Timetable</a>
+    <div class="sidebar-section">Attendance</div>
+    <a class="nav-item active" href="ai_attendance.html"><span class="nav-icon">🤖</span> AI Attendance</a>
+    <div class="sidebar-section">Faculty</div>
+    <a class="nav-item" href="admin_dashboard.html"><span class="nav-icon">👩‍🏫</span> Faculty Mapping</a>
+    <a class="nav-item" href="admin_dashboard.html"><span class="nav-icon">🔑</span> Login Accounts</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar" id="user-avatar">A</div>
+    <div class="user-info">
+      <div class="user-name" id="user-name">Administrator</div>
+      <div class="user-role">ADMIN · TAT</div>
+    </div>
+    <div class="user-logout" onclick="logout()" title="Logout">⏻</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-header">
+    <div class="page-title">🤖 AI Automatic Attendance</div>
+    <div class="page-sub">Face-recognition based attendance — admin sets camera once, system detects all students automatically</div>
+  </div>
+  <div class="page-content">
+
+    <!-- HOW IT WORKS -->
+    <div class="how-box">
+      <h4>📖 How it works</h4>
+      <div class="how-steps">
+        <div class="how-step"><strong>1. Select Class</strong>Choose branch, semester. System auto-detects today's timetable slot.</div>
+        <div class="how-step"><strong>2. Connect Engine</strong>Python face engine on port 5001 — detects all faces at once.</div>
+        <div class="how-step"><strong>3. Start Camera</strong>Point camera at classroom. Click <em>Capture Start</em> at class start.</div>
+        <div class="how-step"><strong>4. Capture End</strong>At class end click <em>Capture End</em>. Students in BOTH captures = Present.</div>
+        <div class="how-step"><strong>5. Finalize</strong>All present/absent written to DB automatically across all subjects.</div>
+      </div>
+    </div>
+
+    <!-- STEP INDICATOR -->
+    <div class="steps-nav" id="stepsNav">
+      <div class="step-dot active" id="step1"><div class="step-circle">1</div><div class="step-label">Select Class</div></div>
+      <div class="step-dot" id="step2"><div class="step-circle">2</div><div class="step-label">Load Models</div></div>
+      <div class="step-dot" id="step3"><div class="step-circle">3</div><div class="step-label">Capture Start</div></div>
+      <div class="step-dot" id="step4"><div class="step-circle">4</div><div class="step-label">Capture End</div></div>
+      <div class="step-dot" id="step5"><div class="step-circle">5</div><div class="step-label">Finalize</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:start">
+
+      <!-- LEFT COLUMN -->
+      <div>
+
+        <!-- STEP 1: Class Setup -->
+        <div class="card" id="cardSetup">
+          <div class="card-header">
+            <span class="card-header-title">📋 Step 1 — Select Class</span>
+            <span id="slotBadge" class="badge badge-blue" style="display:none"></span>
+          </div>
+          <div class="card-body">
+            <div id="msgSetup"></div>
+            <div class="form-row">
+              <div>
+                <label>Branch / Section</label>
+                <select id="selBranch" onchange="onBranchChange()">
+                  <option value="">— Select Branch —</option>
+                  <option>CSE-A</option><option>CSE-B</option><option>CSE-C</option>
+                  <option>CST-A</option><option>CST-B</option><option>CS-IT</option>
+                  <option>CS(AI&ML)</option><option>ETC</option><option>MECH</option><option>EEE</option><option>CIVIL</option>
+                </select>
+              </div>
+              <div>
+                <label>Semester</label>
+                <select id="selSem" onchange="onBranchChange()">
+                  <option value="">— Select —</option>
+                  <option>1</option><option>2</option><option>3</option><option>4</option>
+                  <option>5</option><option>6</option><option>7</option><option>8</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label>Timetable Slot (Optional)</label>
+              <select id="selSlot" style="display:none">
+                <option value="">— Pick a slot —</option>
+              </select>
+            </div>
+            <div id="manualSubjectRow" style="display:none;margin-top:10px">
+              <label>Subject (Manual Entry)</label>
+              <input type="text" id="manualSubject" placeholder="e.g. Mathematics, Physics Lab…" style="width:100%;padding:8px 11px;border:1px solid #d0d8ef;border-radius:6px;font-size:13px;outline:none;background:#fff">
+              <div style="font-size:11px;color:#888;margin-top:4px">No timetable found — enter subject name manually to tag this session.</div>
+            </div>
+            <div id="slotInfo" style="display:none;margin-top:12px"></div>
+            <div id="slotList" style="display:none;margin-top:12px"></div>
+            <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn btn-blue" onclick="startSession()">🚀 Start AI Session</button>
+              <span id="sessionIdDisplay" style="font-size:12px;color:#888;align-self:center"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: Connect to Python Face Engine -->
+        <div class="card hidden" id="cardModels">
+          <div class="card-header">
+            <span class="card-header-title">🧠 Step 2 — Connect to Face Engine</span>
+            <span id="modelStatus" class="badge badge-orange">Not Connected</span>
+          </div>
+          <div class="card-body">
+            <div id="msgModels"></div>
+            <p style="font-size:13px;color:#666;margin-bottom:14px">
+              Face recognition runs via <strong>Python/OpenCV</strong> on your machine — detects every face in the room at once with bounding boxes drawn in real-time.
+            </p>
+            <div class="form-row-3" style="margin-bottom:14px">
+              <div style="text-align:center;padding:10px;background:#f8faff;border-radius:6px;border:1px solid #e2e8f0">
+                <div id="m1icon">⏳</div><div style="font-size:11px;margin-top:4px;color:#888">Face Engine</div>
+              </div>
+              <div style="text-align:center;padding:10px;background:#f8faff;border-radius:6px;border:1px solid #e2e8f0">
+                <div id="m2icon">⏳</div><div style="font-size:11px;margin-top:4px;color:#888">Students Enrolled</div>
+              </div>
+              <div style="text-align:center;padding:10px;background:#f8faff;border-radius:6px;border:1px solid #e2e8f0">
+                <div id="m3icon">⏳</div><div style="font-size:11px;margin-top:4px;color:#888">OpenCV Detector</div>
+              </div>
+            </div>
+            <div id="descriptorInfo" style="display:none;margin-bottom:12px;padding:10px;background:#dcfce7;border:1px solid #bbf7d0;border-radius:6px;font-size:12.5px;color:#15803d"></div>
+            <button class="btn btn-blue" id="btnLoadModels" onclick="connectToEngine()">🔗 Connect &amp; Check Engine</button>
+          </div>
+        </div>
+
+        <!-- STEP 3 & 4: Camera + Capture (Python MJPEG stream) -->
+        <div class="card hidden" id="cardCamera">
+          <div class="card-header">
+            <span class="card-header-title">📷 Steps 3 &amp; 4 — Camera &amp; Face Capture</span>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span id="camStatus" class="badge badge-red">Camera Off</span>
+              <span id="enrolledBadge" style="font-size:11px;color:#64748b"></span>
+              <button class="btn btn-sm btn-secondary" onclick="toggleCamera()" id="btnCam">▶ Start Camera</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:14px">
+            <div id="camWrap" style="position:relative;background:#0f172a;border-radius:10px;overflow:hidden;min-height:260px">
+              <!-- MJPEG stream — Python draws bounding boxes on ALL faces server-side -->
+              <img id="videoFeed" src="" alt="Camera Feed"
+                   style="width:100%;display:none;border-radius:10px"
+                   onerror="onFeedError()"/>
+              <div id="camPlaceholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#64748b;gap:10px">
+                <div style="font-size:52px">📷</div>
+                <p style="font-size:14px;font-weight:600;margin:0">Click &quot;Start Camera&quot; to begin</p>
+                <small style="font-size:12px;color:#4a5568">Python face engine must be running</small>
+              </div>
+            </div>
+            <div id="engineWarning" style="display:none;margin-top:8px;padding:10px 14px;background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;font-size:12.5px;color:#92400e">
+              ⚠️ <strong>Face engine not running.</strong> Double-click <code>start_face_engine.bat</code> in the portal_v6 folder, wait for it to say &quot;Running on port 5001&quot;, then click Start Camera again.
+            </div>
+            <div class="cam-log" id="camLog">[System] Ready. Start camera to detect faces.</div>
+
+            <div class="capture-bar">
+              <button class="btn btn-blue" id="btnCaptureStart" onclick="doCapture('start')" disabled>
+                📸 Capture Start (Beginning of class)
+              </button>
+              <button class="btn btn-orange" id="btnCaptureEnd" onclick="doCapture('end')" disabled>
+                📸 Capture End (End of class)
+              </button>
+            </div>
+
+            <div id="captureStatus" style="margin-top:10px;font-size:12px;color:#666"></div>
+          </div>
+        </div>
+
+        <!-- STEP 5: Finalize -->
+        <div class="card hidden" id="cardFinalize">
+          <div class="card-header">
+            <span class="card-header-title">✅ Step 5 — Review &amp; Finalize Attendance</span>
+          </div>
+          <div class="card-body">
+            <div id="msgFinalize"></div>
+            <div id="finalSummary" style="display:none;margin-bottom:16px"></div>
+            <div id="finalStudentList" style="overflow-x:auto;max-height:300px;overflow-y:auto"></div>
+            <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn btn-success" id="btnFinalize" onclick="finalizeAttendance()" disabled>
+                💾 Finalize &amp; Save to DB
+              </button>
+              <button class="btn btn-secondary" onclick="resetAll()">🔄 New Session</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /left col -->
+
+      <!-- RIGHT COLUMN -->
+      <div>
+
+        <!-- Live Stats -->
+        <div class="card">
+          <div class="card-header"><span class="card-header-title">📊 Live Session Stats</span></div>
+          <div class="card-body" style="padding:14px">
+            <div class="stats-bar" style="grid-template-columns:1fr 1fr">
+              <div class="stat-box"><div class="stat-icon si-blue">👥</div><div><div class="stat-val" id="statTotal">—</div><div class="stat-lbl">Total Students</div></div></div>
+              <div class="stat-box"><div class="stat-icon si-green">✅</div><div><div class="stat-val" id="statPresent" style="color:#16a34a">0</div><div class="stat-lbl">Detected Present</div></div></div>
+              <div class="stat-box"><div class="stat-icon si-orange">📸</div><div><div class="stat-val" id="statStart">—</div><div class="stat-lbl">Start Capture</div></div></div>
+              <div class="stat-box"><div class="stat-icon si-red">📸</div><div><div class="stat-val" id="statEnd">—</div><div class="stat-lbl">End Capture</div></div></div>
+            </div>
+            <div id="sessionInfoBox" style="margin-top:10px;font-size:12px;color:#666;line-height:1.7;display:none"></div>
+          </div>
+        </div>
+
+        <!-- Face detection results live feed -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-header-title">🎯 Detected Faces</span>
+            <span id="detectCount" class="badge badge-blue">0 faces</span>
+          </div>
+          <div id="detectList" style="max-height:220px;overflow-y:auto;padding:12px 16px;font-size:12px;color:#888;text-align:center">
+            Waiting for camera…
+          </div>
+        </div>
+
+        <!-- Today's sessions -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-header-title">🗂 Today's Sessions</span>
+            <button class="btn btn-sm btn-secondary" onclick="loadTodaySessions()">↻</button>
+          </div>
+          <div id="todaySessions" style="max-height:260px;overflow-y:auto">
+            <div style="padding:20px;text-align:center;color:#888;font-size:12px">Loading…</div>
+          </div>
+        </div>
+
+      </div><!-- /right col -->
+
+    </div><!-- /grid -->
+
+  </div><!-- /page-content -->
+</div><!-- /main -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  ai_attendance.html — Python OpenCV Face Engine Edition
+//  Camera feed is an MJPEG stream from face_engine.py (port 5001).
+//  Bounding boxes are drawn SERVER-SIDE for all faces at once.
+// ═══════════════════════════════════════════════════════════════════
+const API     = 'http://localhost:3000/api';
+const PY_API  = 'http://localhost:3000/py';   // proxied through Node
+
+let currentUser       = null;
+let sessionId         = null;
+let slotInfo          = null;
+let startCaptureIds   = null;
+let endCaptureIds     = null;
+let studentsLoaded    = [];
+let cameraRunning     = false;
+let engineConnected   = false;
+let feedCheckInterval = null;
+
+// ── Init ──────────────────────────────────────────────────────────
+window.onload = () => {
+  const stored = localStorage.getItem('user');
+  if (!stored) { location.href = 'index.html'; return; }
+  currentUser = JSON.parse(stored);
+  if (currentUser.role !== 'Admin') { location.href = 'index.html'; return; }
+  const initials = (currentUser.name||'A').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-name').textContent   = currentUser.name || 'Administrator';
+  loadTodaySessions();
+};
+
+function logout(){ localStorage.removeItem('user'); location.href='index.html'; }
+
+// ── Helpers ───────────────────────────────────────────────────────
+function log(msg, color='#22d3a0'){
+  const el=document.getElementById('camLog');
+  const now=new Date().toLocaleTimeString('en-IN');
+  el.innerHTML += `\n<span style="color:${color}">[${now}] ${msg}</span>`;
+  el.scrollTop=el.scrollHeight;
+}
+function setMsg(id,msg,type){
+  const el=document.getElementById(id); if(!el) return;
+  const colors={success:'#dcfce7|#16a34a',error:'#fee2e2|#dc2626',warn:'#fef3c7|#92400e',info:'#dbeafe|#1d4ed8'};
+  const [bg,color]=(colors[type]||'#f1f5f9|#475569').split('|');
+  el.innerHTML=msg?`<div style="padding:10px 14px;background:${bg};color:${color};border-radius:6px;font-size:13px;margin-bottom:10px">${msg}</div>`:'';
+}
+function setStep(n){
+  for(let i=1;i<=5;i++){
+    const el=document.getElementById('step'+i);
+    if(!el) continue;
+    el.classList.remove('active','done');
+    if(i<n) el.classList.add('done');
+    else if(i===n) el.classList.add('active');
+  }
+}
+
+// ── STEP 1: Select Class & Start Session ──────────────────────────
+function onBranchChange(){
+  const branch=document.getElementById('selBranch').value;
+  const sem=document.getElementById('selSem').value;
+  if(branch && sem) loadSlots();
+}
+
+async function loadSlots(){
+  const branch=document.getElementById('selBranch').value;
+  const sem=document.getElementById('selSem').value;
+  if(!branch||!sem) return;
+  try{
+    const res=await fetch(`${API}/ai-attendance/slots?branch=${encodeURIComponent(branch)}&semester=${sem}`);
+    const data=await res.json();
+    const listEl=document.getElementById('slotList');
+    const infoEl=document.getElementById('slotInfo');
+    if(!data.slots||!data.slots.length){
+      infoEl.style.display='block';
+      infoEl.innerHTML=`<div class="msg msg-warn">⚠️ No timetable slots found for ${branch} Sem ${sem} today. Enter subject manually below.</div>`;
+      listEl.style.display='none';
+      document.getElementById('selSlot').style.display='none';
+      document.getElementById('manualSubjectRow').style.display='block';
+      return;
+    }
+    const now=new Date(); const h=now.getHours(),m=now.getMinutes(); const nowMins=h*60+m;
+    let activeSlot=null;
+    data.slots.forEach(s=>{
+      if(s.time_slot){
+        const [start]=s.time_slot.split('-');
+        const [sh,sm]=start.split(':').map(Number);
+        const [end]=s.time_slot.split('-').slice(1);
+        const [eh,em]=end?end.split(':').map(Number):[sh+1,sm];
+        const startMins=sh*60+sm, endMins=eh*60+em;
+        if(nowMins>=startMins&&nowMins<=endMins) activeSlot=s;
+      }
+    });
+    if(activeSlot){
+      infoEl.style.display='block';
+      infoEl.innerHTML=`<div class="msg msg-success">✅ Active now: <strong>${activeSlot.subject_short||'Class'}</strong> &nbsp;·&nbsp; ${activeSlot.time_slot} &nbsp;·&nbsp; Faculty: ${activeSlot.faculty_name||activeSlot.faculty_code||'—'} &nbsp;·&nbsp; Room: ${activeSlot.room_no||'—'}</div>`;
+      slotInfo=activeSlot;
+    } else {
+      infoEl.style.display='block';
+      infoEl.innerHTML=`<div class="msg msg-warn">⚠️ No class active right now (${now.toLocaleTimeString('en-IN')}). You can still pick a slot below and start manually.</div>`;
+    }
+    let optionsHTML=data.slots.map(s=>`<option value="${s.id}">${s.time_slot||'—'} · ${s.subject_short||s.subject_code||'Class'} · ${s.faculty_code||'—'} · Room ${s.room_no||'—'}</option>`).join('');
+    document.getElementById('selSlot').innerHTML='<option value="">— Pick a slot —</option>'+optionsHTML;
+    document.getElementById('selSlot').style.display='block';
+    listEl.style.display='block';
+  }catch(e){ setMsg('msgSetup','Error loading slots: '+e.message,'error'); }
+}
+
+async function startSession(){
+  const branch=document.getElementById('selBranch').value;
+  const sem=document.getElementById('selSem').value;
+  const forceSlotId=document.getElementById('selSlot')?.value||null;
+  const manualSubject=(document.getElementById('manualSubject')?.value||'').trim();
+  if(!branch||!sem){ setMsg('msgSetup','Please select branch and semester.','warn'); return; }
+  try{
+    const res=await fetch(`${API}/ai-attendance/start`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({branch,semester:parseInt(sem),forceSlotId,manualSubject:manualSubject||undefined})
+    });
+    const data=await res.json();
+    if(!data.success){ setMsg('msgSetup',data.message||'Failed to start session','error'); return; }
+    sessionId=data.sessionId; slotInfo=data.slotInfo;
+    document.getElementById('sessionIdDisplay').textContent='Session: '+sessionId;
+    const badge=document.getElementById('slotBadge');
+    badge.style.display='inline-block';
+    badge.textContent=slotInfo?`${slotInfo.subject_short||'Class'} · ${slotInfo.time_slot||''}`:'Manual session';
+    const infoBox=document.getElementById('sessionInfoBox');
+    if(slotInfo){
+      infoBox.style.display='block';
+      infoBox.innerHTML=`<strong>Subject:</strong> ${slotInfo.subject_short||'—'} &nbsp;|&nbsp; <strong>Faculty:</strong> ${slotInfo.faculty_name||slotInfo.faculty_code||'—'} &nbsp;|&nbsp; <strong>Time:</strong> ${slotInfo.time_slot||'—'} &nbsp;|&nbsp; <strong>Room:</strong> ${slotInfo.room_no||'—'}`;
+    }
+    // Load students for this class
+    const stuRes=await fetch(`${API}/ai-attendance/students-with-descriptors?branch=${encodeURIComponent(branch)}&semester=${sem}`);
+    const stuData=await stuRes.json();
+    studentsLoaded=stuData.students||[];
+    document.getElementById('statTotal').textContent=studentsLoaded.length;
+    setMsg('msgSetup','','');
+    document.getElementById('cardModels').classList.remove('hidden');
+    setStep(2);
+  }catch(e){ setMsg('msgSetup','Error: '+e.message,'error'); }
+}
+
+// ── STEP 2: Connect to Python Face Engine ─────────────────────────
+let _retryTimer=null;
+let _retryCount=0;
+const MAX_RETRIES=10;
+
+function _clearRetry(){
+  if(_retryTimer){ clearInterval(_retryTimer); _retryTimer=null; }
+  _retryCount=0;
+}
+
+function _startAutoRetry(){
+  _clearRetry();
+  _retryCount=0;
+  const btn=document.getElementById('btnLoadModels');
+  _retryTimer=setInterval(async()=>{
+    _retryCount++;
+    const remaining=MAX_RETRIES-_retryCount;
+    btn.innerHTML=`⏳ Auto-retrying… (${remaining} left)`;
+    try{
+      const res=await fetch(`${PY_API}/status`,{signal:AbortSignal.timeout(2000)});
+      const data=await res.json();
+      if(data.ok){
+        _clearRetry();
+        _onEngineConnected(data);
+        return;
+      }
+    }catch(_){}
+    if(_retryCount>=MAX_RETRIES){
+      _clearRetry();
+      btn.disabled=false;
+      btn.innerHTML='🔗 Connect &amp; Check Engine';
+    }
+  },3000);
+}
+
+function _onEngineConnected(data){
+  const btn=document.getElementById('btnLoadModels');
+  document.getElementById('m1icon').textContent='✅';
+  document.getElementById('m2icon').textContent=data.enrolled;
+  document.getElementById('m3icon').textContent='✅';
+  document.getElementById('modelStatus').textContent='Connected';
+  document.getElementById('modelStatus').className='badge badge-green';
+  const descEl=document.getElementById('descriptorInfo');
+  descEl.style.display='block';
+  descEl.style.background='#dcfce7'; descEl.style.color='#15803d'; descEl.style.borderColor='#bbf7d0';
+  descEl.innerHTML=`✅ Python face engine connected. <strong>${data.enrolled}</strong> students enrolled. <strong>${studentsLoaded.length}</strong> in this class. Camera: ${data.camera ? '✅ Ready' : '⚠️ Not detected'}.`;
+  engineConnected=true;
+  document.getElementById('cardCamera').classList.remove('hidden');
+  document.getElementById('cardFinalize').classList.remove('hidden');
+  setStep(3);
+  btn.innerHTML='✅ Connected';
+  setMsg('msgModels','','');
+}
+
+async function connectToEngine(){
+  const btn=document.getElementById('btnLoadModels');
+  _clearRetry();
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Connecting…';
+  setMsg('msgModels','','');
+  try{
+    const res=await fetch(`${PY_API}/status`,{signal:AbortSignal.timeout(4000)});
+    const data=await res.json();
+    if(!data.ok) throw new Error('Engine returned error');
+    _onEngineConnected(data);
+  }catch(e){
+    document.getElementById('m1icon').textContent='❌';
+    setMsg('msgModels',`
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:14px;font-size:13px">
+        <strong style="color:#dc2626">❌ Face engine not running on port 5001</strong>
+        <div style="margin-top:10px;color:#7f1d1d;line-height:1.8">
+          <strong>Fix — follow these steps:</strong><br>
+          <span style="background:#fff3cd;padding:2px 6px;border-radius:4px;font-family:monospace">1.</span> Open the <code>portal_v6</code> folder on your computer<br>
+          <span style="background:#fff3cd;padding:2px 6px;border-radius:4px;font-family:monospace">2.</span> Double-click <code style="background:#1e293b;color:#f8fafc;padding:2px 6px;border-radius:4px">start_face_engine.bat</code><br>
+          <span style="background:#fff3cd;padding:2px 6px;border-radius:4px;font-family:monospace">3.</span> Wait until you see: <em>"✅ Running on http://localhost:5001"</em><br>
+          <span style="background:#fff3cd;padding:2px 6px;border-radius:4px;font-family:monospace">4.</span> The page will auto-reconnect — or click the button again
+        </div>
+        <div style="margin-top:10px;padding:8px;background:#fff;border-radius:6px;font-size:11.5px;color:#6b7280">
+          <strong>Common causes:</strong><br>
+          • Python not installed → <a href="https://python.org/downloads" target="_blank">Download Python 3.10+</a> (check "Add to PATH")<br>
+          • Port 5001 busy → close any other face engine windows, then retry<br>
+          • No camera → plug in a USB webcam before starting the engine<br>
+          <em>Error: ${e.message}</em>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:#6b7280">
+          🔄 Auto-retrying every 3 seconds for 30 seconds…
+        </div>
+      </div>`,'');
+    _startAutoRetry();
+  }
+}
+
+// ── STEP 3 & 4: Camera (MJPEG stream) ────────────────────────────
+function toggleCamera(){
+  cameraRunning ? stopCamera() : startCamera();
+}
+
+function startCamera(){
+  const feed=document.getElementById('videoFeed');
+  const placeholder=document.getElementById('camPlaceholder');
+  const warn=document.getElementById('engineWarning');
+
+  // Point the <img> at the MJPEG stream
+  feed.src=`${PY_API}/video_feed?t=${Date.now()}`;
+  feed.style.display='block';
+  placeholder.style.display='none';
+  warn.style.display='none';
+  document.getElementById('camStatus').textContent='Camera On';
+  document.getElementById('camStatus').className='badge badge-green';
+  document.getElementById('btnCam').textContent='⏹ Stop Camera';
+  document.getElementById('btnCaptureStart').disabled=false;
+  document.getElementById('btnCaptureEnd').disabled=false;
+  cameraRunning=true;
+  log('Camera started. Point at the classroom — all faces detected automatically.');
+  // Poll engine for enrolled count
+  fetch(`${PY_API}/status`).then(r=>r.json()).then(d=>{
+    if(d.enrolled!==undefined) document.getElementById('enrolledBadge').textContent=`${d.enrolled} enrolled`;
+  }).catch(()=>{});
+}
+
+function stopCamera(){
+  const feed=document.getElementById('videoFeed');
+  feed.src=''; feed.style.display='none';
+  document.getElementById('camPlaceholder').style.display='flex';
+  document.getElementById('camStatus').textContent='Camera Off';
+  document.getElementById('camStatus').className='badge badge-red';
+  document.getElementById('btnCam').textContent='▶ Start Camera';
+  document.getElementById('btnCaptureStart').disabled=true;
+  document.getElementById('btnCaptureEnd').disabled=true;
+  cameraRunning=false;
+  log('Camera stopped.','#f87171');
+  fetch(`${PY_API}/stop`,{method:'POST'}).catch(()=>{});
+}
+
+function onFeedError(){
+  // MJPEG stream broke — show warning
+  document.getElementById('engineWarning').style.display='block';
+  document.getElementById('videoFeed').style.display='none';
+  document.getElementById('camPlaceholder').style.display='flex';
+  document.getElementById('camStatus').textContent='Camera Off';
+  document.getElementById('camStatus').className='badge badge-red';
+  document.getElementById('btnCam').textContent='▶ Start Camera';
+  cameraRunning=false;
+  log('Camera feed lost — face engine may have stopped.','#f87171');
+}
+
+// ── STEP 3 & 4: Capture snapshot ─────────────────────────────────
+async function doCapture(type){
+  if(!sessionId){ log('No active session!','#f87171'); return; }
+  log(`Capturing ${type}-of-class photo… scanning all faces`, '#60a5fa');
+
+  let ids=[];
+  try{
+    const res=await fetch(`${PY_API}/capture`,{method:'POST'});
+    const data=await res.json();
+    if(data.ok && data.detections){
+      ids=data.detections.map(d=>d.student_id);
+      const names=data.detections.map(d=>d.name||d.student_id).join(', ');
+      log(`Detected ${ids.length} student(s): ${names||'none'}`, '#22d3a0');
+    }
+  }catch(e){
+    log('Capture error: '+e.message,'#f87171'); return;
+  }
+
+  ids=[...new Set(ids)];
+
+  if(type==='start'){
+    startCaptureIds=ids;
+    document.getElementById('statStart').textContent=ids.length+' faces';
+    document.getElementById('step3').classList.remove('active');
+    document.getElementById('step3').classList.add('done');
+    document.getElementById('step4').classList.add('active');
+  } else {
+    endCaptureIds=ids;
+    document.getElementById('statEnd').textContent=ids.length+' faces';
+    document.getElementById('step4').classList.remove('active');
+    document.getElementById('step4').classList.add('done');
+    document.getElementById('step5').classList.add('active');
+  }
+
+  // Save to Node/MySQL
+  try{
+    await fetch(`${API}/ai-attendance/save-capture`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sessionId, captureType:type, recognizedIds:ids})
+    });
+    log(`${type==='start'?'Start':'End'} capture saved: ${ids.length} student(s) detected`,'#22d3a0');
+    updateFinalizePreview();
+    document.getElementById('btnFinalize').disabled=false;
+  }catch(e){ log('Save capture error: '+e.message,'#f87171'); }
+
+  document.getElementById('captureStatus').innerHTML=
+    `<span style="color:#16a34a">✅ ${type==='start'?'Start':'End'} capture saved: ${ids.length} face(s) recognized</span>`;
+}
+
+function updateFinalizePreview(){
+  const start=new Set(startCaptureIds||[]);
+  const end=new Set(endCaptureIds||[]);
+  const present=[...start].filter(id=>end.has(id));
+
+  const rows=studentsLoaded.map(s=>{
+    const inStart=start.has(s.studentId);
+    const inEnd=end.has(s.studentId);
+    const isPresent=present.includes(s.studentId);
+    return `<tr>
+      <td><strong>${s.studentId}</strong></td>
+      <td>${s.fullName||'—'}</td>
+      <td>${inStart?'✅':'—'}</td>
+      <td>${inEnd?'✅':'—'}</td>
+      <td><span class="badge ${isPresent?'badge-green':'badge-red'}">${isPresent?'PRESENT':'ABSENT'}</span></td>
+    </tr>`;
+  });
+
+  document.getElementById('finalSummary').style.display='block';
+  document.getElementById('finalSummary').innerHTML=`
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <span class="badge badge-green">✅ Present (both captures): ${present.length}</span>
+      <span class="badge badge-orange">📸 Start only: ${[...start].filter(id=>!end.has(id)).length}</span>
+      <span class="badge badge-orange">📸 End only: ${[...end].filter(id=>!start.has(id)).length}</span>
+      <span class="badge badge-red">❌ Absent: ${studentsLoaded.length-present.length}</span>
+    </div>
+    <div class="msg msg-info" style="font-size:12px;margin-bottom:0">
+      📌 Rule: Student must appear in <strong>both</strong> start &amp; end captures to be marked <strong>Present</strong>.
+    </div>`;
+
+  if(rows.length){
+    document.getElementById('finalStudentList').innerHTML=`
+      <table>
+        <thead><tr><th>Roll No</th><th>Name</th><th>Start Capture</th><th>End Capture</th><th>Status</th></tr></thead>
+        <tbody>${rows.join('')}</tbody>
+      </table>`;
+  }
+}
+
+// ── STEP 5: Finalize ─────────────────────────────────────────────
+async function finalizeAttendance(){
+  if(!sessionId){ setMsg('msgFinalize','No active session','error'); return; }
+  const btn=document.getElementById('btnFinalize');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Saving…';
+  try{
+    const res=await fetch(`${API}/ai-attendance/finalize`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sessionId, mode:'EITHER'})
+    });
+    const data=await res.json();
+    if(!data.success){ setMsg('msgFinalize',data.message,'error'); btn.disabled=false; btn.textContent='💾 Finalize & Save to DB'; return; }
+    setMsg('msgFinalize',
+      `✅ Attendance saved! <strong>${data.presentCount}</strong> present, <strong>${data.absentCount}</strong> absent out of <strong>${data.totalStudents}</strong> students.`,
+      'success');
+    document.getElementById('step5').classList.add('done');
+    stopCamera();
+    loadTodaySessions();
+    btn.textContent='✅ Saved!';
+  }catch(e){
+    setMsg('msgFinalize','Error: '+e.message,'error');
+    btn.disabled=false; btn.textContent='💾 Finalize & Save to DB';
+  }
+}
+
+// ── Today's sessions ─────────────────────────────────────────────
+async function loadTodaySessions(){
+  try{
+    const res=await fetch(`${API}/ai-attendance/sessions`);
+    const data=await res.json();
+    const el=document.getElementById('todaySessions');
+    const sessions=data.sessions||[];
+    if(!sessions.length){ el.innerHTML='<div style="padding:16px;text-align:center;color:#888;font-size:12px">No sessions today yet.</div>'; return; }
+    el.innerHTML=sessions.map(s=>`
+      <div class="session-item">
+        <div class="session-meta">
+          <div class="session-title">${s.branch} Sem ${s.semester} · ${s.subject_code||'Manual'}</div>
+          <div class="session-sub">${s.time_slot||'—'} · ${s.faculty_code||'—'} · ${new Date(s.created_at).toLocaleTimeString('en-IN')}</div>
+          <div class="prog-bar"><div class="prog-fill" style="width:${s.total_students?(s.present_count/s.total_students*100):0}%"></div></div>
+        </div>
+        <div style="text-align:right;min-width:80px">
+          <span class="badge ${s.status==='completed'?'badge-green':'badge-blue'}">${s.status}</span>
+          ${s.status==='completed'?`<div style="font-size:11px;margin-top:4px;color:#16a34a">${s.present_count}/${s.total_students}</div>`:''}
+        </div>
+      </div>`).join('');
+  }catch(e){ document.getElementById('todaySessions').innerHTML='<div style="padding:16px;color:#888;font-size:12px">Could not load sessions.</div>'; }
+}
+
+// ── Reset ────────────────────────────────────────────────────────
+function resetAll(){
+  sessionId=null; slotInfo=null; startCaptureIds=null; endCaptureIds=null;
+  studentsLoaded=[]; engineConnected=false;
+  _clearRetry();
+  stopCamera();
+  document.getElementById('cardModels').classList.add('hidden');
+  document.getElementById('cardCamera').classList.add('hidden');
+  document.getElementById('cardFinalize').classList.add('hidden');
+  document.getElementById('slotBadge').style.display='none';
+  document.getElementById('sessionIdDisplay').textContent='';
+  document.getElementById('statTotal').textContent='—';
+  document.getElementById('statPresent').textContent='0';
+  document.getElementById('statStart').textContent='—';
+  document.getElementById('statEnd').textContent='—';
+  document.getElementById('sessionInfoBox').style.display='none';
+  document.getElementById('finalSummary').style.display='none';
+  document.getElementById('finalStudentList').innerHTML='';
+  document.getElementById('camLog').innerHTML='[System] Ready. Start camera to detect faces.';
+  setMsg('msgSetup','',''); setMsg('msgModels','',''); setMsg('msgFinalize','','');
+  document.getElementById('modelStatus').textContent='Not Connected';
+  document.getElementById('modelStatus').className='badge badge-orange';
+  document.getElementById('m1icon').textContent='⏳';
+  document.getElementById('m2icon').textContent='⏳';
+  document.getElementById('m3icon').textContent='⏳';
+  document.getElementById('btnLoadModels').disabled=false;
+  document.getElementById('btnLoadModels').innerHTML='🔗 Connect &amp; Check Engine';
+  document.getElementById('descriptorInfo').style.display='none';
+  document.getElementById('btnFinalize').disabled=true;
+  document.getElementById('btnFinalize').textContent='💾 Finalize & Save to DB';
+  document.getElementById('selBranch').value='';
+  document.getElementById('selSem').value='';
+  document.getElementById('slotInfo').style.display='none';
+  document.getElementById('slotList').style.display='none';
+  document.getElementById('enrolledBadge').textContent='';
+  document.getElementById('engineWarning').style.display='none';
+  setStep(1);
+}
+</script>
+</body>
+</html>
